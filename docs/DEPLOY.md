@@ -72,7 +72,11 @@ cast wallet list                                  # shows chog-deployer
 export DEPLOYER=0xYourDeployerAddress
 ```
 
-Send it a small amount of MON for gas (deploying three contracts plus setup is a few transactions). Check the balance:
+Send it **mainnet MON** (Monad's native gas token on chain 143, the real one you buy on an exchange or bridge; testnet MON from the faucet is a different, worthless token and only works for the step 7 dry run).
+
+How much: a simulation of `Deploy.s.sol` against mainnet (7 transactions: 3 contract deploys, `setMinter`, 3 ownership transfers) used ~8.0M gas, which forge priced at **~1.6 MON** with its padded gas price (202 gwei; the live price was ~102 gwei). Monad charges by gas *limit*, not gas used, so send **3 MON** to the deployer and keep ~0.5 MON in the Safe signer wallet that will execute `acceptOwnership`, `createSeason` and `setItem`. Re-run the estimate yourself just before deploying (step 7, run the forge command without `--broadcast`; the "ETH" in its output means MON). Leftover MON can be sent back afterwards.
+
+Check the balance:
 
 ```bash
 cast balance $DEPLOYER --rpc-url https://rpc.monad.xyz --ether
