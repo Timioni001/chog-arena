@@ -4,12 +4,12 @@ import dynamic from 'next/dynamic';
 
 function Splash() {
   return (
-    <div className="grid min-h-dvh place-items-center bg-bg">
+    <div className="grid min-h-dvh place-items-center">
       <div className="flex flex-col items-center gap-4">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/icon.svg" alt="" width={88} height={88} className="animate-bounce" />
-        <div className="font-pixel text-2xl text-ink">Chog Arena</div>
-        <div className="text-sm text-dim">Sharpening quills…</div>
+        <img src="/art/avatar-wild.webp" alt="" width={112} height={112} className="animate-pulse rounded-[32px] shadow-2xl" />
+        <div className="font-display text-3xl font-semibold text-ink">Chog Arena</div>
+        <div className="eyebrow">Sharpening quills</div>
       </div>
     </div>
   );

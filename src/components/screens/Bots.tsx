@@ -57,7 +57,7 @@ function Dashboard() {
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <div className="text-sm font-bold text-dim">Passive income</div>
-            <div className="flex items-center gap-1 font-pixel text-3xl"><Spark /> {fmt(rate)}<span className="text-base text-dim">/h</span></div>
+            <div className="flex items-center gap-1 font-display text-3xl"><Spark /> {fmt(rate)}<span className="text-base text-dim">/h</span></div>
           </div>
           <Pill>{lo.slots} slot{lo.slots > 1 ? 's' : ''} · offline cap {lo.offlineHours}h</Pill>
         </div>
@@ -72,7 +72,7 @@ function Dashboard() {
                 ) : b ? (
                   <button className="flex flex-col items-center" onClick={() => setDetail(b)}>
                     <BotSprite species={speciesOf(b)} level={b.level} size={72} />
-                    <div className="mt-1 text-xs font-extrabold">{speciesOf(b).name}</div>
+                    <div className="mt-1 text-xs font-semibold">{speciesOf(b).name}</div>
                     <div className="text-[11px] text-dim">{fmt(botYield(b, lo.yieldBonus))}/h</div>
                   </button>
                 ) : (
@@ -100,7 +100,7 @@ function Dashboard() {
               <div key={b.uid} className={`relative rounded-2xl border-2 p-2 text-center transition ${picked ? 'border-gold bg-gold/10' : 'border-line bg-panel-2'}`}>
                 <button className="w-full" onClick={() => toggle(b.uid)} aria-pressed={picked} aria-label={`${s.name} level ${b.level}${on ? ', equipped' : ''}`}>
                   <BotSprite species={s} level={b.level} size={60} />
-                  <div className="truncate text-xs font-extrabold">{s.name}</div>
+                  <div className="truncate text-xs font-semibold">{s.name}</div>
                   <div className="text-[10px]" style={{ color: RARITY_COLOR[s.rarity] }}>{s.rarity}</div>
                 </button>
                 <Button size="sm" tone={on ? 'ghost' : 'chog'} className="mt-1 w-full !min-h-8 !text-xs" onClick={() => {
@@ -149,7 +149,7 @@ function SparkShop() {
           <div className="flex items-center gap-3">
             <BotSprite species={s} size={72} />
             <div className="min-w-0">
-              <div className="font-extrabold">{s.name}</div>
+              <div className="font-semibold">{s.name}</div>
               <div className="text-xs font-bold capitalize" style={{ color: RARITY_COLOR[s.rarity] }}>{s.rarity}</div>
               <div className="mt-1"><ElementBadge element={s.element} /></div>
             </div>
@@ -183,7 +183,7 @@ function ChogShop() {
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <div className="text-sm font-bold text-dim">Your $CHOG</div>
-            <div className="font-pixel text-2xl">{balance.data !== undefined ? Number(formatUnits(balance.data, 18)).toLocaleString('en-US', { maximumFractionDigits: 2 }) : address ? '…' : '—'}</div>
+            <div className="font-display text-2xl">{balance.data !== undefined ? Number(formatUnits(balance.data, 18)).toLocaleString('en-US', { maximumFractionDigits: 2 }) : address ? '…' : '—'}</div>
           </div>
           <a className="text-sm font-bold text-chog-2 underline" href={`https://monadvision.com/token/${CHOG_TOKEN}`} target="_blank" rel="noreferrer">Token on explorer</a>
         </div>
@@ -225,7 +225,7 @@ function ChogItem({ item, disabled }: { item: (typeof CHOG_ITEMS)[number]; disab
   };
   return (
     <Panel className="flex flex-col">
-      <div className="font-extrabold">{item.name}</div>
+      <div className="font-semibold">{item.name}</div>
       <p className="mt-1 flex-1 text-sm text-dim">{item.text}</p>
       <Button className="mt-3" tone="cheek" disabled={disabled || !price || !active || isPending} onClick={buy}>
         {isPending ? 'Confirm in wallet…' : price ? `${Number(formatUnits(price, 18)).toLocaleString()} $CHOG` : 'Unavailable'}

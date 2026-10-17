@@ -11,17 +11,17 @@ import { sfx } from '@/lib/sound';
 type Tone = 'chog' | 'gold' | 'lime' | 'ghost' | 'danger' | 'cheek' | 'panel';
 
 const TONES: Record<Tone, string> = {
-  chog: 'bg-chog text-white hover:brightness-110',
-  gold: 'bg-gold text-[#2a1a00] hover:brightness-105',
-  lime: 'bg-lime text-[#05210c] hover:brightness-105',
-  cheek: 'bg-cheek text-[#3a0a22] hover:brightness-105',
+  chog: 'bg-gradient-to-b from-[#8a5cf0] to-chog text-white shadow-[0_10px_28px_-12px_rgba(109,58,214,0.9),inset_0_1px_0_rgba(255,255,255,0.25)] hover:brightness-110',
+  gold: 'bg-gradient-to-b from-[#ffd88a] to-gold text-[#3a2400] shadow-[0_10px_28px_-12px_rgba(255,200,97,0.8),inset_0_1px_0_rgba(255,255,255,0.5)] hover:brightness-105',
+  lime: 'bg-gradient-to-b from-[#7cf0c2] to-lime text-[#05271a] shadow-[0_10px_28px_-12px_rgba(75,227,166,0.8),inset_0_1px_0_rgba(255,255,255,0.4)] hover:brightness-105',
+  cheek: 'bg-gradient-to-b from-[#ff86b9] to-cheek text-white shadow-[0_10px_28px_-12px_rgba(255,95,162,0.9),inset_0_1px_0_rgba(255,255,255,0.3)] hover:brightness-105',
   danger: 'bg-danger text-white hover:brightness-110',
-  ghost: 'bg-transparent text-ink border border-line hover:bg-panel-2 shadow-none',
-  panel: 'bg-panel-2 text-ink border border-line hover:brightness-110',
+  ghost: 'bg-transparent text-ink border border-line hover:bg-panel-2',
+  panel: 'bg-[color-mix(in_srgb,var(--ink)_11%,transparent)] text-ink border border-line hover:bg-[color-mix(in_srgb,var(--ink)_16%,transparent)]',
 };
 
 export function Button({ tone = 'chog', size = 'md', className = '', children, onClick, ...rest }: ButtonHTMLAttributes<HTMLButtonElement> & { tone?: Tone; size?: 'sm' | 'md' | 'lg' }) {
-  const sz = size === 'lg' ? 'min-h-14 px-6 text-lg rounded-2xl' : size === 'sm' ? 'min-h-9 px-3 text-sm rounded-xl' : 'min-h-11 px-4 rounded-xl';
+  const sz = size === 'lg' ? 'min-h-14 px-7 text-[1.05rem] rounded-full' : size === 'sm' ? 'min-h-9 px-3.5 text-[0.8rem] rounded-full' : 'min-h-11 px-5 text-[0.92rem] rounded-full';
   return (
     <button
       {...rest}
@@ -29,7 +29,7 @@ export function Button({ tone = 'chog', size = 'md', className = '', children, o
         sfx.click();
         onClick?.(e);
       }}
-      className={`btn-3d inline-flex items-center justify-center gap-2 font-bold disabled:opacity-45 disabled:cursor-not-allowed ${sz} ${TONES[tone]} ${tone === 'ghost' ? '!shadow-none' : ''} ${className}`}
+      className={`btn-soft inline-flex items-center justify-center gap-2 font-semibold tracking-[0.01em] disabled:cursor-not-allowed disabled:opacity-40 disabled:saturate-50 ${sz} ${TONES[tone]} ${className}`}
     >
       {children}
     </button>
@@ -38,17 +38,18 @@ export function Button({ tone = 'chog', size = 'md', className = '', children, o
 
 export function Panel({ children, className = '', ...rest }: { children: ReactNode; className?: string } & React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div {...rest} className={`rounded-3xl border border-line bg-panel p-4 ${className}`}>
+    <div {...rest} className={`glass rounded-[28px] p-5 shadow-[0_20px_60px_-40px_rgba(20,8,48,0.8)] ${className}`}>
       {children}
     </div>
   );
 }
 
-export function Title({ children, sub, right }: { children: ReactNode; sub?: ReactNode; right?: ReactNode }) {
+export function Title({ children, sub, right, eyebrow }: { children: ReactNode; sub?: ReactNode; right?: ReactNode; eyebrow?: ReactNode }) {
   return (
-    <div className="mb-3 flex items-end justify-between gap-3">
-      <div>
-        <h2 className="font-pixel text-xl leading-none sm:text-2xl">{children}</h2>
+    <div className="mb-4 flex items-end justify-between gap-3">
+      <div className="min-w-0">
+        {eyebrow && <div className="eyebrow mb-1.5">{eyebrow}</div>}
+        <h2 className="font-display text-[1.45rem] font-semibold leading-tight sm:text-[1.7rem]">{children}</h2>
         {sub && <p className="mt-1 text-sm text-dim">{sub}</p>}
       </div>
       {right}
@@ -56,9 +57,13 @@ export function Title({ children, sub, right }: { children: ReactNode; sub?: Rea
   );
 }
 
+export function Eyebrow({ children, className = '' }: { children: ReactNode; className?: string }) {
+  return <div className={`eyebrow ${className}`}>{children}</div>;
+}
+
 export function Pill({ children, className = '', color }: { children: ReactNode; className?: string; color?: string }) {
   return (
-    <span className={`inline-flex items-center gap-1 rounded-full border border-line bg-panel-2 px-2 py-0.5 text-xs font-bold ${className}`} style={color ? { color, borderColor: `${color}55`, background: `${color}18` } : undefined}>
+    <span className={`inline-flex items-center gap-1 rounded-full border border-line bg-panel-2 px-2.5 py-0.5 text-[0.72rem] font-semibold ${className}`} style={color ? { color, borderColor: `${color}55`, background: `${color}18` } : undefined}>
       {children}
     </span>
   );
@@ -67,8 +72,8 @@ export function Pill({ children, className = '', color }: { children: ReactNode;
 export function Bar({ value, max, color = '#7c4dff', className = '', height = 10, label }: { value: number; max: number; color?: string; className?: string; height?: number; label?: string }) {
   const pct = Math.max(0, Math.min(100, (value / Math.max(1, max)) * 100));
   return (
-    <div className={`overflow-hidden rounded-full bg-panel-2 ${className}`} style={{ height }} role="progressbar" aria-valuenow={Math.round(value)} aria-valuemax={max} aria-label={label}>
-      <div className="h-full rounded-full transition-[width] duration-300" style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${color}, color-mix(in srgb, ${color} 60%, white))` }} />
+    <div className={`overflow-hidden rounded-full bg-[color-mix(in_srgb,var(--ink)_10%,transparent)] ${className}`} style={{ height }} role="progressbar" aria-valuenow={Math.round(value)} aria-valuemax={max} aria-label={label}>
+      <div className="h-full rounded-full transition-[width] duration-300" style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${color}, color-mix(in srgb, ${color} 55%, white))`, boxShadow: `0 0 12px ${color}66` }} />
     </div>
   );
 }
@@ -97,7 +102,7 @@ export function Modal({ open, onClose, children, title, wide }: { open: boolean;
           <motion.div
             role="dialog"
             aria-modal="true"
-            className={`relative max-h-[88dvh] w-full overflow-y-auto rounded-3xl border border-line bg-panel p-5 shadow-2xl ${wide ? 'max-w-2xl' : 'max-w-md'}`}
+            className={`relative max-h-[88dvh] w-full overflow-y-auto rounded-[28px] border border-line bg-[#1b1236] p-6 shadow-2xl light:bg-white ${wide ? 'max-w-2xl' : 'max-w-md'}`}
             initial={{ y: 40, scale: 0.96 }}
             animate={{ y: 0, scale: 1 }}
             exit={{ y: 40, opacity: 0 }}
@@ -106,7 +111,7 @@ export function Modal({ open, onClose, children, title, wide }: { open: boolean;
             <button aria-label="Close" onClick={onClose} className="absolute right-3 top-3 grid size-10 place-items-center rounded-full text-dim hover:bg-panel-2">
               <X size={20} />
             </button>
-            {title && <h3 className="mb-3 pr-10 font-pixel text-xl">{title}</h3>}
+            {title && <h3 className="mb-3 pr-10 font-display text-2xl font-semibold">{title}</h3>}
             {children}
           </motion.div>
         </motion.div>
@@ -164,14 +169,14 @@ export function Toaster() {
 
 export function Tabs<T extends string>({ value, onChange, items, className = '' }: { value: T; onChange: (v: T) => void; items: { id: T; label: ReactNode }[]; className?: string }) {
   return (
-    <div role="tablist" className={`scroll-x flex gap-1 rounded-2xl border border-line bg-panel p-1 ${className}`}>
+    <div role="tablist" className={`scroll-x glass flex gap-1 rounded-full p-1 ${className}`}>
       {items.map((it) => (
         <button
           key={it.id}
           role="tab"
           aria-selected={value === it.id}
           onClick={() => onChange(it.id)}
-          className={`min-h-10 shrink-0 rounded-xl px-3 text-sm font-bold transition ${value === it.id ? 'bg-chog text-white' : 'text-dim hover:text-ink'}`}
+          className={`min-h-10 shrink-0 rounded-full px-4 text-[0.82rem] font-semibold transition ${value === it.id ? 'bg-ink text-bg shadow' : 'text-dim hover:text-ink'}`}
         >
           {it.label}
         </button>
@@ -183,7 +188,7 @@ export function Tabs<T extends string>({ value, onChange, items, className = '' 
 export function Spark({ className = '' }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" className={`inline-block size-[1em] ${className}`} aria-hidden>
-      <path d="M12 1.5l2.6 6.7 7 .9-5.3 4.7 1.6 7-5.9-3.7-5.9 3.7 1.6-7L2.4 9.1l7-.9z" fill="#ffd166" stroke="#7a4b00" strokeWidth="1.4" strokeLinejoin="round" />
+      <defs><linearGradient id="spk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#ffe3a3" /><stop offset="1" stopColor="#ffb547" /></linearGradient></defs><path d="M12 2c.6 4.3 2.6 6.9 8 8-5.4 1.1-7.4 3.7-8 12-.6-8.3-2.6-10.9-8-12 5.4-1.1 7.4-3.7 8-8z" fill="url(#spk)" />
     </svg>
   );
 }

@@ -22,9 +22,15 @@ export const SEASON = {
 
 export const PASS: PassTier[] = Array.from({ length: PASS_TIERS }, (_, i) => {
   const t = i + 1;
-  const free: PassReward = t % 10 === 0 ? { kind: 'bot', species: t === 30 ? 'zap' : 'drip' } : t % 3 === 0 ? { kind: 'energy', amount: 300 } : { kind: 'sparks', amount: 250 + t * 40 };
+  const free: PassReward =
+    t === 3 ? { kind: 'cosmetic', id: 'gear-runner', name: 'Speed Runner gear' }
+    : t % 10 === 0 ? { kind: 'bot', species: t === 30 ? 'zap' : 'drip' }
+    : t % 3 === 0 ? { kind: 'energy', amount: 300 }
+    : { kind: 'sparks', amount: 250 + t * 40 };
   const holder: PassReward =
-    t === 30 ? { kind: 'cosmetic', id: 'frame-mythic', name: 'Season Crown Frame' }
+    t === 5 ? { kind: 'cosmetic', id: 'gear-hoodie', name: 'Cozy Hoodie gear' }
+    : t === 10 ? { kind: 'cosmetic', id: 'gear-space', name: 'Space Explorer gear' }
+    : t === 30 ? { kind: 'cosmetic', id: 'frame-mythic', name: 'Season Crown Frame' }
     : t === 20 ? { kind: 'bot', species: 'cinder' }
     : t % 5 === 0 ? { kind: 'cosmetic', id: `trail-s1-${t}`, name: ['Ember Trail', 'Tide Trail', 'Moss Trail', 'Void Trail'][(t / 5 - 1) % 4] }
     : { kind: 'sparks', amount: 500 + t * 80 };

@@ -12,9 +12,14 @@ import { Button, Pill, Spark, toast } from '../ui';
 import { fmt, useLoadout, useQuality, useReducedMotion } from '@/lib/hooks';
 import { seasonsAbi, SEASONS_ADDRESS } from '@/lib/wagmi';
 import { makeShareCard } from './shareCard';
+import { useGame } from '@/lib/store';
+import type { Gear } from '../three/ChogModel';
 
 export function ResultPanel() {
-  const s = useMatch((x) => x.session)!;
+  const live = useMatch((x) => x.session);
+  const last = useRef(live);
+  if (live) last.current = live;
+  const s = last.current!;
   const close = useMatch((x) => x.close);
   const rematch = useMatch((x) => x.rematch);
   const lo = useLoadout();
@@ -88,18 +93,18 @@ export function ResultPanel() {
   return (
     <motion.div className="absolute inset-0 z-10 overflow-y-auto bg-black/70 backdrop-blur-md" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
       <div className="safe-top mx-auto flex min-h-full max-w-md flex-col px-4 pb-8 pt-4">
-        <motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 260, damping: 14 }} className={`text-center font-pixel text-5xl ${won ? 'shimmer-text' : draw ? 'text-white' : 'text-danger'}`}>
-          {won ? 'VICTORY' : draw ? 'DRAW' : 'DEFEAT'}
+        <motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 260, damping: 14 }} className={`text-center font-display text-6xl font-semibold italic ${won ? 'shimmer-text' : draw ? 'text-white' : 'text-[#ff8fa8]'}`}>
+          {won ? 'Victory' : draw ? 'Draw' : 'Defeat'}
         </motion.div>
         <div className="mt-1 text-center text-sm text-white/70">
           {o.result.laneWinners.filter((w) => w === 0).length}–{o.result.laneWinners.filter((w) => w === 1).length} lanes · {o.result.totalPower[0]} vs {o.result.totalPower[1]} power
         </div>
 
-        <div className="relative mx-auto mt-3 h-56 w-full overflow-hidden rounded-3xl border border-white/15">
+        <div className="relative mx-auto mt-4 h-60 w-full overflow-hidden rounded-[28px] border border-white/15">
           {gl ? (
             <Stage quality={quality} reducedMotion={reduced} className="absolute inset-0" camera={[0, 1.5, 5.2]}>
               <World backdrop={s.stageId ? (s.stageId.split('-')[0] as 'cloud') : 'studio'} />
-              <ChogModel look={lo.look} cue={cue} ascension={lo.ascension.ring} />
+              <ChogModel look={lo.look} cue={cue} ascension={lo.ascension.ring} gear={(useGame.getState().progress[useGame.getState().activeKey]?.gear as Gear) ?? null} />
             </Stage>
           ) : (
             <div className="grid h-full place-items-center"><ChogSprite look={lo.look} size={180} /></div>
@@ -130,7 +135,7 @@ export function ResultPanel() {
         <div className="mt-4 grid gap-2">
           {o.attestation && SEASONS_ADDRESS && address && (
             <Button tone="lime" onClick={recordOnchain} disabled={isPending || !!recorded}>
-              <Trophy size={18} /> {recorded ? 'Recorded on Monad' : isPending ? 'Confirm in wallet…' : 'Record win on Monad'}
+              <Trophy size={18} /> {recorded ? 'Recorded on Monad' : isPending ? 'Confirm in wallet…' : 'Record result on Monad'}
             </Button>
           )}
           <div className="grid grid-cols-2 gap-2">
@@ -149,9 +154,9 @@ export function ResultPanel() {
 
 function Reward({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
-      <div className="text-[11px] font-bold uppercase tracking-wider text-white/55">{label}</div>
-      <div className="mt-0.5 font-pixel text-xl">{value}</div>
+    <div className="rounded-[20px] border border-white/10 bg-white/[0.06] p-3.5">
+      <div className="eyebrow !text-[0.6rem] !text-white/55">{label}</div>
+      <div className="mt-1 font-display text-2xl font-semibold tabular-nums">{value}</div>
     </div>
   );
 }

@@ -107,3 +107,73 @@ export function stripeTexture(a: string, b: string): THREE.CanvasTexture {
   labelCache.set(key, tex);
   return tex;
 }
+
+/**
+ * Plush "velvet" material for fur and fabric: a physical material with sheen, matching the soft
+ * toy look of the character sheets. Falls back to Lambert on low quality.
+ */
+export function fur(color: string, opts: { low?: boolean; emissive?: string; emissiveIntensity?: number; sheen?: string } = {}): THREE.Material {
+  const key = `fur:${color}:${opts.low ? 1 : 0}:${opts.emissive ?? ''}:${opts.emissiveIntensity ?? 0}:${opts.sheen ?? ''}`;
+  let m = cache.get(key);
+  if (!m) {
+    if (opts.low) {
+      m = new THREE.MeshLambertMaterial({ color, emissive: opts.emissive ?? '#000000', emissiveIntensity: opts.emissiveIntensity ?? 0 });
+    } else {
+      const c = new THREE.Color(color);
+      m = new THREE.MeshPhysicalMaterial({
+        color,
+        roughness: 0.78,
+        metalness: 0,
+        sheen: 1,
+        sheenRoughness: 0.45,
+        sheenColor: new THREE.Color(opts.sheen ?? c.clone().lerp(new THREE.Color('#ffffff'), 0.45)),
+        emissive: opts.emissive ?? '#000000',
+        emissiveIntensity: opts.emissiveIntensity ?? 0,
+      });
+    }
+    cache.set(key, m);
+  }
+  return m;
+}
+
+/** Glossy surfaces: eyes, nose, paw pads, visors. */
+export function gloss(color: string, opts: { low?: boolean; emissive?: string; emissiveIntensity?: number; opacity?: number; roughness?: number; metalness?: number } = {}): THREE.Material {
+  const key = `gloss:${color}:${opts.low ? 1 : 0}:${opts.emissive ?? ''}:${opts.emissiveIntensity ?? 0}:${opts.opacity ?? 1}:${opts.roughness ?? 0.25}:${opts.metalness ?? 0}`;
+  let m = cache.get(key);
+  if (!m) {
+    const transparent = (opts.opacity ?? 1) < 1;
+    m = opts.low
+      ? new THREE.MeshLambertMaterial({ color, emissive: opts.emissive ?? '#000000', emissiveIntensity: opts.emissiveIntensity ?? 0, transparent, opacity: opts.opacity ?? 1 })
+      : new THREE.MeshStandardMaterial({ color, roughness: opts.roughness ?? 0.25, metalness: opts.metalness ?? 0, emissive: opts.emissive ?? '#000000', emissiveIntensity: opts.emissiveIntensity ?? 0, transparent, opacity: opts.opacity ?? 1, depthWrite: !transparent });
+    cache.set(key, m);
+  }
+  return m;
+}
+
+let shadowTex: THREE.CanvasTexture | null = null;
+/** Soft blob shadow: far cheaper than real shadows and reads well under a plush character. */
+export function blobShadow(): THREE.CanvasTexture {
+  if (shadowTex) return shadowTex;
+  const c = document.createElement('canvas');
+  c.width = c.height = 128;
+  const ctx = c.getContext('2d')!;
+  const g = ctx.createRadialGradient(64, 64, 4, 64, 64, 62);
+  g.addColorStop(0, 'rgba(20,8,40,0.55)');
+  g.addColorStop(1, 'rgba(20,8,40,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 128, 128);
+  shadowTex = new THREE.CanvasTexture(c);
+  return shadowTex;
+}
+
+/** Soft matte surfaces for scenery. */
+export function matte(color: string, opts: { opacity?: number } = {}): THREE.Material {
+  const key = `matte:${color}:${opts.opacity ?? 1}`;
+  let m = cache.get(key);
+  if (!m) {
+    const transparent = (opts.opacity ?? 1) < 1;
+    m = new THREE.MeshStandardMaterial({ color, roughness: 0.92, metalness: 0, transparent, opacity: opts.opacity ?? 1 });
+    cache.set(key, m);
+  }
+  return m;
+}

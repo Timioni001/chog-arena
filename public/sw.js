@@ -1,6 +1,6 @@
 // Chog Arena service worker: cache-first for static assets, network-first for pages, never for /api.
-const CACHE = 'chog-arena-v1';
-const CORE = ['/', '/icon.svg', '/manifest.webmanifest'];
+const CACHE = 'chog-arena-v2';
+const CORE = ['/', '/icons/icon-192.png', '/art/avatar-wild.webp', '/manifest.webmanifest'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(CORE)).then(() => self.skipWaiting()));
@@ -15,7 +15,7 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
   if (e.request.method !== 'GET' || url.origin !== location.origin || url.pathname.startsWith('/api/')) return;
-  if (url.pathname.startsWith('/_next/static/') || /\.(svg|png|webp|woff2?)$/.test(url.pathname)) {
+  if (url.pathname.startsWith('/_next/static/') || /\.(svg|png|jpg|webp|woff2?)$/.test(url.pathname)) {
     e.respondWith(
       caches.match(e.request).then(
         (hit) =>
