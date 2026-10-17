@@ -139,7 +139,7 @@ function DailyQuests() {
           return (
             <div key={q.id} className="flex items-center gap-3 rounded-2xl border border-line bg-panel-2 p-3">
               <div className="min-w-0 flex-1">
-                <div className="font-extrabold">{q.title}</div>
+                <div className="font-semibold">{q.title}</div>
                 <Bar value={Math.min(have, q.goal)} max={q.goal} className="mt-1.5" height={8} color={ready || claimed ? '#39ff6a' : '#7c4dff'} />
                 <div className="mt-1 flex items-center gap-2 text-xs text-dim">
                   <span>{fmt(Math.min(have, q.goal))}/{fmt(q.goal)}</span>
@@ -174,7 +174,7 @@ function SeasonPass() {
           const reached = t.tier <= tier;
           return (
             <div key={t.tier} className={`w-28 shrink-0 rounded-2xl border p-2 text-center ${reached ? 'border-chog bg-chog/10' : 'border-line bg-panel-2'}`}>
-              <div className="font-pixel text-sm">Tier {t.tier}</div>
+              <div className="font-display text-sm">Tier {t.tier}</div>
               {(['free', 'holder'] as const).map((track) => {
                 const claimed = p.pass[track].includes(t.tier);
                 const locked = track === 'holder' && !lo.isHolder;
@@ -207,7 +207,7 @@ function Referral() {
       <div className="flex flex-wrap items-center gap-3">
         <Users className="text-chog-2" />
         <div className="min-w-0 flex-1">
-          <div className="font-extrabold">Invite friends</div>
+          <div className="font-semibold">Invite friends</div>
           <p className="text-sm text-dim">Referrals pay in energy and cosmetics only. No $CHOG, no pyramids.</p>
         </div>
         <Button size="sm" tone="panel" onClick={async () => { try { await navigator.clipboard.writeText(link); toast.good('Invite link copied.'); } catch { toast.info(link); } }}><Copy size={16} /> Copy link</Button>

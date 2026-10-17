@@ -12,6 +12,7 @@ import { useGame } from '@/lib/store';
 import { leagueFor, LEAGUES } from '@/game/mmr';
 import { SEASON } from '@/game/season';
 import { useAccount } from 'wagmi';
+import { ART } from '@/lib/art';
 
 export function BattleScreen() {
   const lo = useLoadout();
@@ -40,21 +41,26 @@ export function BattleScreen() {
 
   return (
     <div className="space-y-4">
-      <Title sub={`${SEASON.name} · ${daysLeft} days left`}>Battle</Title>
+      <Title eyebrow={`${SEASON.name} · ${daysLeft} days left`}>Battle</Title>
       {!lo.isHolder && <GuestBanner compact />}
 
       <div className="grid gap-3 md:grid-cols-2">
         {/* ranked */}
         <Panel className="relative overflow-hidden !p-0">
-          <div className="p-5" style={{ background: `linear-gradient(135deg, ${league.color}33, transparent 60%)` }}>
-            <div className="flex items-start justify-between">
+          <div className="relative h-44">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={ART.heroSpace} alt="" className="absolute inset-0 size-full object-cover object-[50%_30%]" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#1b1236] via-[#1b1236]/30 to-transparent" />
+            <div className="absolute inset-x-5 bottom-4 flex items-end justify-between text-white">
               <div>
-                <div className="flex items-center gap-2 text-sm font-bold text-dim"><Trophy size={16} /> Ranked</div>
-                <div className="mt-1 font-pixel text-3xl" style={{ color: league.color }}>{league.name}</div>
-                <div className="text-sm text-dim">{p.mmr} MMR · {p.wins}W / {p.games - p.wins}L · best streak {p.bestStreak}</div>
+                <div className="eyebrow flex items-center gap-1.5 !text-white/75"><Trophy size={13} /> Ranked</div>
+                <div className="mt-1 font-display text-[2.2rem] font-semibold leading-none" style={{ color: league.color }}>{league.name}</div>
               </div>
               <ElementBadge element={lo.profile.element} size="md" />
             </div>
+          </div>
+          <div className="p-5">
+            <div className="text-sm text-dim tabular-nums">{p.mmr} MMR · {p.wins}W / {p.games - p.wins}L · best streak {p.bestStreak}</div>
             {league.next && (
               <div className="mt-3">
                 <Bar value={league.progress} max={1} color={league.color} />
@@ -79,7 +85,7 @@ export function BattleScreen() {
           <Panel>
             <div className="flex items-center justify-between gap-3">
               <div>
-                <div className="flex items-center gap-2 font-extrabold"><MapIcon size={18} /> Campaign</div>
+                <div className="flex items-center gap-2 font-semibold"><MapIcon size={18} /> Campaign</div>
                 <p className="mt-1 text-sm text-dim">Five zones, bosses, first-clear bonuses.</p>
               </div>
               <Button tone="chog" onClick={() => setScreen('campaign')}>Open map</Button>
@@ -88,14 +94,14 @@ export function BattleScreen() {
           <Panel>
             <div className="flex items-center justify-between gap-3">
               <div>
-                <div className="flex items-center gap-2 font-extrabold"><Bot size={18} /> Practice</div>
+                <div className="flex items-center gap-2 font-semibold"><Bot size={18} /> Practice</div>
                 <p className="mt-1 text-sm text-dim">A relaxed match vs a rookie ghost. Quarter rewards.</p>
               </div>
               <Button tone="panel" onClick={() => void start('practice', ctx)} disabled={busy}>Play</Button>
             </div>
           </Panel>
           <Panel>
-            <div className="flex items-center gap-2 font-extrabold"><Link2 size={18} /> Challenge a friend</div>
+            <div className="flex items-center gap-2 font-semibold"><Link2 size={18} /> Challenge a friend</div>
             <p className="mt-1 text-sm text-dim">Finish any match and tap <b>Challenge</b>: your friend gets the same seed and lanes against your Chog, and tries to top your score.</p>
           </Panel>
         </div>
@@ -116,7 +122,7 @@ export function BattleScreen() {
           <ul className="divide-y divide-line">
             {p.history.slice(0, 8).map((m) => (
               <li key={m.id} className="flex items-center gap-3 py-2 text-sm">
-                <span className={`w-14 shrink-0 rounded-lg px-2 py-0.5 text-center text-xs font-black ${m.won ? 'bg-lime/20 text-lime' : m.won === null ? 'bg-panel-2' : 'bg-danger/20 text-[#ffb3bf]'}`}>{m.won ? 'WIN' : m.won === null ? 'DRAW' : 'LOSS'}</span>
+                <span className={`w-14 shrink-0 rounded-lg px-2 py-0.5 text-center text-xs font-bold ${m.won ? 'bg-lime/20 text-lime' : m.won === null ? 'bg-panel-2' : 'bg-danger/20 text-[#ffb3bf]'}`}>{m.won ? 'WIN' : m.won === null ? 'DRAW' : 'LOSS'}</span>
                 <span className="min-w-0 flex-1 truncate">{m.opponent}</span>
                 <Pill>{m.mode}</Pill>
                 <span className="w-16 text-right font-bold">{m.score} pts</span>

@@ -1,8 +1,9 @@
 'use client';
 
 import { AnimatePresence, motion } from 'framer-motion';
-import { Flag, Zap } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { Flag, Smile, Zap } from 'lucide-react';
+import { EMOTES, type Emote } from '@/lib/art';
+import { useMemo, useRef, useState } from 'react';
 import { useMatch } from './useMatch';
 import { CardView } from '../CardView';
 import { ChogSprite } from '../ChogSprite';
@@ -23,7 +24,11 @@ function visiblePower(state: BattleState, side: 0 | 1, lane: number, hidden: Set
 }
 
 export function MatchView() {
-  const s = useMatch((x) => x.session)!;
+  // Keep the last session while the exit animation plays after the match closes.
+  const live = useMatch((x) => x.session);
+  const last = useRef(live);
+  if (live) last.current = live;
+  const s = last.current!;
   const stage = useMatch((x) => x.stage);
   const unstage = useMatch((x) => x.unstage);
   const endTurn = useMatch((x) => x.endTurn);
@@ -33,6 +38,24 @@ export function MatchView() {
   const [selected, setSelected] = useState<number | null>(null);
   const [confirmQuit, setConfirmQuit] = useState(false);
   const [laneInfo, setLaneInfo] = useState<number | null>(null);
+  const [emoteOpen, setEmoteOpen] = useState(false);
+  const [myEmote, setMyEmote] = useState<{ id: Emote; key: number } | null>(null);
+  const [foeEmote, setFoeEmote] = useState<{ id: Emote; key: number } | null>(null);
+  const sendEmote = (id: Emote) => {
+    const key = Date.now();
+    setMyEmote({ id, key });
+    setEmoteOpen(false);
+    setTimeout(() => setMyEmote((e) => (e?.key === key ? null : e)), 2400);
+    // The arena AI is polite about half the time.
+    if (Math.random() < 0.55) {
+      const reply = EMOTES[Math.floor(Math.random() * EMOTES.length)].id;
+      setTimeout(() => {
+        const k2 = Date.now();
+        setFoeEmote({ id: reply, key: k2 });
+        setTimeout(() => setFoeEmote((e) => (e?.key === k2 ? null : e)), 2400);
+      }, 900);
+    }
+  };
 
   const { state, staged, hidden, phase } = s;
   const me = state.sides[0];
@@ -49,7 +72,7 @@ export function MatchView() {
     return id ? appearanceOf(profileForToken(id)) : null;
   }, [s.opponentDesc.tokenId]);
   const zone = s.stageId ? findStage(s.stageId)?.zone : null;
-  const bg = zone ? `linear-gradient(180deg, ${zone.sky[1]} 0%, #0d0a18 75%)` : 'radial-gradient(circle at 50% 0%, #3a2580 0%, #0d0a18 70%)';
+  const bg = zone ? `linear-gradient(180deg, ${zone.sky[1]} 0%, #120b24 70%)` : 'radial-gradient(120% 60% at 50% 0%, #4a2a9a 0%, #120b24 70%)';
 
   const onLane = (lane: number) => {
     if (phase !== 'plan') return;
@@ -63,11 +86,14 @@ export function MatchView() {
     <motion.div className="fixed inset-0 z-40 flex flex-col overflow-hidden text-white" style={{ background: bg }} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
       {/* header */}
       <div className="safe-top mx-auto flex w-full max-w-3xl items-center gap-3 px-3 pt-2">
-        <div className="grid size-12 shrink-0 place-items-center overflow-hidden rounded-2xl border border-white/20 bg-black/30 text-2xl">
-          {foeLook ? <ChogSprite look={foeLook} size={48} /> : ENEMY_ICON[s.opponent.element]}
+        <div className="relative">
+          <div className="grid size-12 shrink-0 place-items-center overflow-hidden rounded-2xl border border-white/20 bg-white/10 text-2xl">
+            {foeLook ? <ChogSprite look={foeLook} size={48} /> : ENEMY_ICON[s.opponent.element]}
+          </div>
+          <EmoteBubble emote={foeEmote} side="top" />
         </div>
         <div className="min-w-0 flex-1">
-          <div className="truncate font-extrabold">{s.opponent.name}</div>
+          <div className="truncate font-semibold">{s.opponent.name}</div>
           <div className="flex items-center gap-2 text-xs text-white/70">
             <ElementBadge element={s.opponent.element} />
             <span className="capitalize">{s.level}</span>
@@ -75,10 +101,26 @@ export function MatchView() {
           </div>
         </div>
         <div className="text-center">
-          <div className="font-pixel text-xl leading-none">{Math.min(state.turn, MAX_TURNS)}/{MAX_TURNS}</div>
+          <div className="font-display text-xl leading-none">{Math.min(state.turn, MAX_TURNS)}/{MAX_TURNS}</div>
           <div className="text-[10px] uppercase tracking-wider text-white/60">Turn</div>
         </div>
-        <button aria-label="Leave match" onClick={() => (phase === 'result' ? forfeit() : setConfirmQuit(true))} className="grid size-11 place-items-center rounded-full bg-black/30 text-white/80">
+        <div className="relative">
+          <button aria-label="Send an emote" onClick={() => setEmoteOpen(!emoteOpen)} className="grid size-11 place-items-center rounded-full bg-white/10 text-white/85 backdrop-blur"><Smile size={18} /></button>
+          <AnimatePresence>
+            {emoteOpen && (
+              <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} className="absolute right-0 top-12 z-20 flex gap-1.5 rounded-2xl border border-white/15 bg-[#1b1236]/95 p-2 shadow-2xl backdrop-blur">
+                {EMOTES.map((e) => (
+                  <button key={e.id} onClick={() => sendEmote(e.id)} className="flex w-14 flex-col items-center gap-1 rounded-xl p-1 hover:bg-white/10" aria-label={e.label}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={e.src} alt="" className="size-12 rounded-full object-cover" />
+                    <span className="text-[10px] text-white/75">{e.label}</span>
+                  </button>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+        <button aria-label="Leave match" onClick={() => (phase === 'result' ? forfeit() : setConfirmQuit(true))} className="grid size-11 place-items-center rounded-full bg-white/10 text-white/80 backdrop-blur">
           <Flag size={18} />
         </button>
       </div>
@@ -98,20 +140,20 @@ export function MatchView() {
               <LaneCards cards={foe.lanes[l]} state={state} lane={l} hidden={hidden} faceDownHidden top />
               <button
                 onClick={() => onLane(l)}
-                className={`relative my-1.5 rounded-2xl border px-1.5 py-1.5 text-center transition ${droppable ? 'animate-pulse border-gold bg-gold/20' : 'border-white/15 bg-black/35'}`}
+                className={`relative my-1.5 rounded-[18px] border px-1.5 py-1.5 text-center backdrop-blur transition ${droppable ? 'animate-pulse border-gold bg-gold/20' : 'border-white/12 bg-white/[0.07]'}`}
                 aria-label={`${lane.name}: ${lane.text}. You ${mine}, opponent ${theirs}.${droppable ? ' Tap to play the selected card here.' : ''}`}
               >
-                <div className={`font-pixel text-lg leading-none ${lead === 1 ? 'text-danger' : 'text-white/70'}`}>{theirs}</div>
-                <div className="my-1 truncate text-[11px] font-extrabold leading-tight sm:text-xs">{lane.name}</div>
-                <div className={`font-pixel text-lg leading-none ${lead === 0 ? 'text-lime' : 'text-white/70'}`}>{mine}</div>
+                <div className={`font-display text-xl font-semibold leading-none tabular-nums ${lead === 1 ? 'text-danger' : 'text-white/60'}`}>{theirs}</div>
+                <div className="eyebrow my-1 truncate !text-[0.55rem] !tracking-[0.16em] !text-white/80">{lane.name}</div>
+                <div className={`font-display text-xl font-semibold leading-none tabular-nums ${lead === 0 ? 'text-lime' : 'text-white/60'}`}>{mine}</div>
                 {phase === 'result' && s.outcome && (
-                  <div className={`absolute -right-1 -top-1 rounded-full px-1.5 text-[10px] font-black ${s.outcome.result.laneWinners[l] === 0 ? 'bg-lime text-black' : s.outcome.result.laneWinners[l] === 1 ? 'bg-danger' : 'bg-white/40'}`}>
+                  <div className={`absolute -right-1 -top-1 rounded-full px-1.5 text-[10px] font-bold ${s.outcome.result.laneWinners[l] === 0 ? 'bg-lime text-black' : s.outcome.result.laneWinners[l] === 1 ? 'bg-danger' : 'bg-white/40'}`}>
                     {s.outcome.result.laneWinners[l] === 0 ? 'WON' : s.outcome.result.laneWinners[l] === 1 ? 'LOST' : 'TIE'}
                   </div>
                 )}
                 <AnimatePresence>
                   {floats.map((f) => (
-                    <motion.div key={f.key} initial={{ opacity: 0, y: 0 }} animate={{ opacity: 1, y: f.side === 0 ? 14 : -14 }} exit={{ opacity: 0 }} className={`pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 font-pixel text-base ${f.amount > 0 ? 'text-lime' : 'text-danger'}`}>
+                    <motion.div key={f.key} initial={{ opacity: 0, y: 0 }} animate={{ opacity: 1, y: f.side === 0 ? 14 : -14 }} exit={{ opacity: 0 }} className={`pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 font-display text-base ${f.amount > 0 ? 'text-lime' : 'text-danger'}`}>
                       {f.amount > 0 ? `+${f.amount}` : f.amount}
                     </motion.div>
                   ))}
@@ -126,11 +168,11 @@ export function MatchView() {
       {/* hand */}
       <div className="safe-bottom mx-auto w-full max-w-3xl px-2 pt-2">
         {games === 0 && state.turn === 1 && phase === 'plan' && (
-          <div className="mb-2 rounded-xl bg-black/40 px-3 py-2 text-center text-xs text-white/85">
+          <div className="mb-2 rounded-2xl bg-white/10 px-3 py-2 text-center text-xs text-white/85 backdrop-blur">
             Win <b>2 of 3 lanes</b>. Tap a card, then tap a lane. Turn {state.turn} gives {energy}⚡. Then hit <b>Reveal</b>.
           </div>
         )}
-        <div className="mb-1.5 min-h-[38px] rounded-xl bg-black/35 px-3 py-1.5 text-xs text-white/85">
+        <div className="mb-1.5 min-h-[38px] rounded-2xl bg-white/[0.07] px-3 py-1.5 text-xs text-white/85">
           {selectedCard ? (
             <span>
               <b>{selectedCard.def.name}</b> ({selectedCard.def.cost}⚡ {selectedCard.def.power}✊) · {abilityText(selectedCard.def.ability) || selectedCard.def.text}
@@ -139,14 +181,14 @@ export function MatchView() {
           ) : phase === 'reveal' ? (
             <span>Revealing… {s.state.history.at(-1)?.firstToReveal === 0 ? 'You' : 'They'} reveal first.</span>
           ) : (
-            <span className="text-white/60">Tap a card to see what it does. Element edge: 🔥 beats 🌿, 🌿 beats 🌊, 🌊 beats 🔥 (+1 each).</span>
+            <span className="text-white/60">Tap a card to read it. Element edge: Flame beats Moss, Moss beats Tide, Tide beats Flame (+1 each).</span>
           )}
         </div>
         <div className="flex items-end gap-2">
-          <div className="grid size-16 shrink-0 place-items-center rounded-full border-4 border-[#2fc6ff] bg-[#0b2a3a] text-center shadow-[0_0_20px_#2fc6ff55]" aria-label={`${left} of ${energy} energy left`}>
+          <div className="grid size-16 shrink-0 place-items-center rounded-full border-2 border-cyan/80 bg-[#1b1236] text-center shadow-[0_0_24px_rgba(99,240,255,0.35)]" aria-label={`${left} of ${energy} energy left`}>
             <div>
               <Zap size={14} className="mx-auto text-[#8be9ff]" />
-              <div className="font-pixel text-lg leading-none">{left}</div>
+              <div className="font-display text-xl font-semibold leading-none">{left}</div>
             </div>
           </div>
           <div className="scroll-x flex flex-1 gap-1.5 pb-1 pt-4">
@@ -157,9 +199,10 @@ export function MatchView() {
           </div>
         </div>
         <div className="mt-2 flex gap-2 pb-1">
-          <div className="flex items-center gap-2 rounded-xl bg-black/30 px-3 text-xs text-white/70">
-            <ChogSprite look={lo.look} size={30} background={false} />
+          <div className="relative flex items-center gap-2 rounded-full bg-white/10 px-3 text-xs text-white/75">
+            <ChogSprite look={lo.look} size={32} background={false} />
             {me.drawPile.length} in deck
+            <EmoteBubble emote={myEmote} side="bottom" />
           </div>
           <Button tone="gold" size="lg" className="flex-1" disabled={phase !== 'plan'} onClick={() => { setSelected(null); endTurn(); }}>
             {phase === 'plan' ? (staged.length ? `Reveal ${staged.length} card${staged.length > 1 ? 's' : ''}` : state.turn === MAX_TURNS ? 'Final reveal' : 'Pass & reveal') : phase === 'reveal' ? 'Revealing…' : 'Scoring…'}
@@ -214,3 +257,26 @@ function LaneCards({ cards, state, lane, hidden, faceDownHidden, top, staged = [
   );
 }
 
+
+function EmoteBubble({ emote, side }: { emote: { id: Emote; key: number } | null; side: 'top' | 'bottom' }) {
+  return (
+    <AnimatePresence>
+      {emote && (
+        <motion.div
+          key={emote.key}
+          initial={{ opacity: 0, scale: 0.4, y: side === 'top' ? -4 : 4 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.6 }}
+          transition={{ type: 'spring', stiffness: 420, damping: 18 }}
+          className={`pointer-events-none absolute left-1/2 z-20 -translate-x-1/2 ${side === 'top' ? 'top-14' : 'bottom-12'}`}
+        >
+          <div className="flex flex-col items-center rounded-3xl bg-white p-1.5 shadow-2xl">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={EMOTES.find((e) => e.id === emote.id)?.src} alt={emote.id} className="size-16 rounded-[20px] object-cover" />
+            <span className="px-1 pb-0.5 text-[11px] font-semibold text-[#2a1450]">{EMOTES.find((e) => e.id === emote.id)?.label}</span>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}

@@ -38,7 +38,7 @@ export function ProfileScreen() {
         <div className="flex flex-wrap items-center gap-3">
           <Wallet className="text-chog-2" />
           <div className="min-w-0 flex-1">
-            <div className="font-extrabold">{address ? shortAddr(address) : 'No wallet connected'}</div>
+            <div className="font-semibold">{address ? shortAddr(address) : 'No wallet connected'}</div>
             <div className="text-sm text-dim">{address ? `${connector?.name ?? 'Wallet'} · ${owned.length} Chog${owned.length === 1 ? '' : 's'} found` : 'Connect to load your Chogs. Playing the demo needs no wallet.'}</div>
           </div>
           {address && <Button tone="ghost" size="sm" onClick={() => { disconnect(); void signOut(); }}><LogOut size={16} /> Disconnect</Button>}
@@ -81,7 +81,7 @@ export function ProfileScreen() {
       <Panel>
         <Title>Settings</Title>
         <div className="space-y-4">
-          <Row label="Graphics" hint="Auto picks Low on older phones. Low turns off outlines and particles.">
+          <Row label="Graphics" hint="Auto picks Low on older phones. Low uses simpler materials and no particles.">
             <Tabs value={settings.quality} onChange={(v) => setSettings({ quality: v })} items={[{ id: 'auto', label: 'Auto' }, { id: 'low', label: 'Low' }, { id: 'medium', label: 'Med' }, { id: 'high', label: 'High' }]} />
           </Row>
           <Row label="Theme"><Tabs value={settings.theme} onChange={(v) => setSettings({ theme: v })} items={[{ id: 'dark', label: 'Dark' }, { id: 'light', label: 'Light' }]} /></Row>
@@ -100,7 +100,7 @@ export function ProfileScreen() {
       </Panel>
 
       <Panel className="space-y-2 text-sm text-dim">
-        <div className="font-extrabold text-ink">About</div>
+        <div className="font-semibold text-ink">About</div>
         <p>Chog Arena reads the Chog Genesis collection (<a className="underline" href={`https://monadvision.com/address/${COLLECTION.contract}`} target="_blank" rel="noreferrer">{shortAddr(COLLECTION.contract)}</a>, {COLLECTION.supply} tokens) on Monad. $CHOG: <a className="underline" href={`https://monadvision.com/token/${CHOG_TOKEN}`} target="_blank" rel="noreferrer">{shortAddr(CHOG_TOKEN)}</a>.</p>
         <p>All character art is original and generated from your traits. We never use or host NFT images.</p>
         <p>Contracts are unaudited and launch with per-wallet and per-day caps.</p>
@@ -116,7 +116,7 @@ function ChogPick({ id, active, onPick }: { id: number; active: boolean; onPick:
   return (
     <button onClick={onPick} className={`relative rounded-2xl border-2 p-1.5 text-center ${active ? 'border-gold bg-gold/10' : 'border-line bg-panel-2'}`} aria-pressed={active}>
       <ChogSprite look={look} size={80} className="mx-auto" />
-      <div className="truncate text-xs font-extrabold">{p.name}</div>
+      <div className="truncate text-xs font-semibold">{p.name}</div>
       <div className="text-[10px] text-dim">{p.tier}</div>
       {active && <Check size={16} className="absolute right-1.5 top-1.5 text-gold" />}
     </button>

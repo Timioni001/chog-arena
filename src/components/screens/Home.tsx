@@ -16,6 +16,9 @@ import { leagueFor } from '@/game/mmr';
 import { ARCHETYPES } from '@/game/chog';
 import { haptic, sfx } from '@/lib/sound';
 import { GuestBanner } from '../GuestBanner';
+import { ART, GEAR } from '@/lib/art';
+import type { Gear } from '../three/ChogModel';
+import { SEASON } from '@/game/season';
 
 interface Floater { id: number; x: number; y: number; text: string; crit: boolean }
 
@@ -131,11 +134,11 @@ export function HomeScreen() {
       {!lo.isHolder && <GuestBanner />}
       <div className="grid gap-3 lg:grid-cols-[1.35fr_1fr]">
         {/* tap stage */}
-        <div ref={stageRef} className="game-surface no-select relative h-[min(60dvh,540px)] min-h-[360px] overflow-hidden rounded-[28px] border border-line bg-panel">
+        <div ref={stageRef} className="game-surface no-select relative h-[min(62dvh,560px)] min-h-[380px] overflow-hidden rounded-[32px] border border-line shadow-[0_30px_80px_-40px_rgba(30,10,70,0.9)]">
           {gl ? (
-            <Stage quality={quality} reducedMotion={reduced} onPointerDown={onTap} className="absolute inset-0 cursor-pointer" camera={[0, 1.35, 5.8]} target={[0, 0.72, 0]} frameWidth={3.3}>
+            <Stage quality={quality} reducedMotion={reduced} onPointerDown={onTap} className="absolute inset-0 cursor-pointer" camera={[0, 1.35, 5.8]} target={[0, 0.72, 0]} frameWidth={3.3} frameHeight={4.3}>
               <World backdrop="home" homeColors={homeColors} />
-              <ChogModel look={lo.look} cue={cue} ascension={lo.ascension.ring} />
+              <ChogModel look={lo.look} cue={cue} ascension={lo.ascension.ring} gear={(p.gear as Gear) ?? null} />
             </Stage>
           ) : (
             <div onPointerDown={onTap} className="absolute inset-0 grid cursor-pointer place-items-center" style={{ background: `radial-gradient(circle at 50% 40%, ${lo.look.bg[0]}, ${lo.look.bg[1]})` }}>
@@ -148,44 +151,44 @@ export function HomeScreen() {
           {/* overlays */}
           <div className="pointer-events-none absolute inset-x-3 top-3 flex items-start justify-between gap-2">
             <div className="flex flex-col gap-1.5">
-              <Pill className="!bg-black/40 !text-white backdrop-blur"><Bot size={12} /> {fmt(rate)}/h</Pill>
-              <Pill className="!bg-black/40 !text-white backdrop-blur">{ARCHETYPES[lo.profile.archetype].name}</Pill>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#1b1236]/45 px-3 py-1 text-xs font-semibold text-white backdrop-blur-md"><Bot size={13} strokeWidth={1.8} /> {fmt(rate)} / hour</span>
+              <span className="eyebrow rounded-full bg-[#1b1236]/45 px-3 py-1 !text-[0.6rem] !text-white/85 backdrop-blur-md">{ARCHETYPES[lo.profile.archetype].name}</span>
             </div>
             <div className="flex flex-col items-end gap-1.5">
               <ElementBadge element={lo.profile.element} />
               {comboN > 4 && (
-                <div className="rounded-full bg-black/45 px-2.5 py-1 font-pixel text-sm text-gold backdrop-blur">
+                <div className="rounded-full bg-[#1b1236]/50 px-3 py-1 font-display text-sm font-semibold text-gold backdrop-blur-md">
                   x{comboMultiplier(comboN).toFixed(2)} combo
                 </div>
               )}
             </div>
           </div>
           {floaters.map((f) => (
-            <div key={f.id} className={`pointer-events-none absolute animate-float-up font-pixel drop-shadow-[0_2px_0_rgba(0,0,0,0.6)] ${f.crit ? 'text-3xl text-gold' : 'text-2xl text-white'}`} style={{ left: f.x, top: f.y - 20 }}>
+            <div key={f.id} className={`pointer-events-none absolute animate-float-up font-display drop-shadow-[0_2px_0_rgba(0,0,0,0.6)] ${f.crit ? 'text-3xl text-gold' : 'text-2xl text-white'}`} style={{ left: f.x, top: f.y - 20 }}>
               {f.crit ? `CRIT ${f.text}` : f.text}
             </div>
           ))}
           {p.taps < 3 && (
-            <div className="pointer-events-none absolute inset-x-0 bottom-36 text-center font-pixel text-2xl text-white drop-shadow-[0_3px_0_rgba(0,0,0,0.5)]">
-              <span className="inline-block animate-bounce">Tap your Chog!</span>
+            <div className="pointer-events-none absolute inset-x-0 bottom-36 text-center">
+              <span className="inline-block animate-bounce rounded-full bg-white/85 px-5 py-2 font-display text-lg font-semibold text-[#2a1450] shadow-lg">Tap your Chog</span>
             </div>
           )}
           <AnimatePresence>
             {overcharged && (
-              <motion.div initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} className="pointer-events-none absolute inset-x-0 top-16 text-center font-pixel text-3xl shimmer-text">
-                OVERCHARGE ×2
+              <motion.div initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} className="pointer-events-none absolute inset-x-0 top-16 text-center font-display text-4xl font-semibold italic shimmer-text">
+                Overcharge ×2
               </motion.div>
             )}
           </AnimatePresence>
-          <div className="pointer-events-none absolute inset-x-3 bottom-3 space-y-2 rounded-2xl bg-black/45 p-3 text-white backdrop-blur">
-            <div className="flex items-center justify-between text-sm font-bold">
-              <span className="flex items-center gap-1"><Zap size={16} className="text-gold" /> {Math.floor(energy)} / {lo.energy.cap}</span>
-              <span className="text-white/70">+{lo.energy.regenPerSec}/s · {lo.energy.tapPower}/tap</span>
+          <div className="pointer-events-none absolute inset-x-3 bottom-3 space-y-2 rounded-[22px] bg-[#1b1236]/55 p-3.5 text-white backdrop-blur-xl">
+            <div className="flex items-center justify-between text-sm">
+              <span className="flex items-center gap-1.5 font-semibold tabular-nums"><Zap size={15} className="text-gold" fill="currentColor" /> {Math.floor(energy)} <span className="text-white/50">/ {lo.energy.cap}</span></span>
+              <span className="text-xs text-white/65">+{lo.energy.regenPerSec}/s · {lo.energy.tapPower} per tap</span>
             </div>
-            <Bar value={energy} max={lo.energy.cap} color="#ffd166" height={10} label="Energy" />
+            <Bar value={energy} max={lo.energy.cap} color="#ffc861" height={8} label="Energy" />
             <div className="flex items-center gap-2 text-xs font-bold text-white/80">
               <Flame size={14} className={overcharged ? 'text-cheek' : 'text-white/60'} />
-              <Bar value={overcharged ? (overUntil - now) / OVERCHARGE_MS : chargePct} max={1} color={overcharged ? '#ff8fc8' : '#a98bff'} height={6} className="flex-1" label="Overcharge" />
+              <Bar value={overcharged ? (overUntil - now) / OVERCHARGE_MS : chargePct} max={1} color={overcharged ? '#ff5fa2' : '#9b74f0'} height={5} className="flex-1" label="Overcharge" />
               <span>{overcharged ? 'Overcharged' : 'Charge'}</span>
             </div>
           </div>
@@ -194,54 +197,92 @@ export function HomeScreen() {
         {/* side column */}
         <div className="grid content-start gap-3">
           <Panel>
-            <div className="flex items-center justify-between">
+            <div className="flex items-start justify-between">
               <div>
-                <div className="text-xs font-bold uppercase tracking-wider text-dim">Level {p.level} · {lo.ascension.name}</div>
-                <div className="mt-1 flex items-center gap-2 font-pixel text-3xl"><Spark /> {fmt(p.sparks)}</div>
+                <div className="eyebrow">Level {p.level} · {lo.ascension.name}</div>
+                <div className="mt-2 flex items-center gap-2 font-display text-[2.6rem] font-semibold leading-none tabular-nums"><Spark className="text-[0.8em]" /> {fmt(p.sparks)}</div>
               </div>
               <Button tone="panel" size="sm" onClick={() => setScreen('lab')}>
-                <SparkIcon size={16} /> {p.skillPoints > 0 ? `${p.skillPoints} pts` : 'Lab'}
+                <SparkIcon size={15} /> {p.skillPoints > 0 ? `${p.skillPoints} skill pts` : 'Lab'}
               </Button>
             </div>
-            <Bar value={p.xp} max={xpNeed} className="mt-3" label="Experience" />
-            <div className="mt-1 text-right text-xs text-dim">{fmt(p.xp)} / {fmt(xpNeed)} XP</div>
+            <Bar value={p.xp} max={xpNeed} className="mt-4" height={6} label="Experience" />
+            <div className="mt-1.5 flex justify-between text-xs text-dim"><span>Experience</span><span className="tabular-nums">{fmt(p.xp)} / {fmt(xpNeed)}</span></div>
           </Panel>
+          <Button tone="chog" size="lg" className="w-full !min-h-16 !text-lg" onClick={() => setScreen('battle')}>
+            <Swords size={20} strokeWidth={1.8} /> Enter the arena
+          </Button>
           <div className="grid grid-cols-3 gap-2">
-            <Button tone="chog" size="lg" className="col-span-3 !text-xl" onClick={() => setScreen('battle')}>
-              <Swords /> Battle
-            </Button>
-            <Button tone="panel" onClick={() => setScreen('bots')} className="flex-col !gap-0 py-2 text-xs">
-              <Bot size={20} /> Bots
-            </Button>
-            <Button tone="panel" onClick={() => setScreen('quests')} className="flex-col !gap-0 py-2 text-xs">
-              <ScrollText size={20} /> Quests
-            </Button>
-            <Button tone="panel" onClick={() => setScreen('ranks')} className="flex-col !gap-0 py-2 text-xs">
-              <span className="font-pixel text-sm" style={{ color: league.color }}>{league.name}</span> {p.mmr}
-            </Button>
+            {([['bots', 'Bots', <Bot key="b" size={19} strokeWidth={1.8} />], ['quests', 'Quests', <ScrollText key="q" size={19} strokeWidth={1.8} />]] as const).map(([id, label, icon]) => (
+              <button key={id} onClick={() => setScreen(id)} className="glass btn-soft flex flex-col items-center gap-1 rounded-[22px] py-3 text-xs font-semibold">
+                {icon} {label}
+              </button>
+            ))}
+            <button onClick={() => setScreen('ranks')} className="glass btn-soft flex flex-col items-center gap-0.5 rounded-[22px] py-3 text-xs font-semibold">
+              <span className="font-display text-base font-semibold" style={{ color: league.color }}>{league.name}</span>
+              <span className="tabular-nums text-dim">{p.mmr} MMR</span>
+            </button>
           </div>
-          <Panel className="hidden lg:block">
-            <div className="text-sm font-bold text-dim">How Sparks work</div>
-            <ul className="mt-2 space-y-1.5 text-sm">
-              <li>⚡ Each tap spends 1 energy. Quick taps build a combo up to ×2.</li>
-              <li>🔥 Fill the charge bar to Overcharge: double Sparks for 8s.</li>
-              <li>🤖 Equipped bots earn every hour, even offline (up to {lo.offlineHours}h).</li>
-              <li>🍀 Luck raises your crit chance ({Math.round(lo.energy.critChance * 100)}%): crits pay ×5.</li>
-            </ul>
-          </Panel>
+          <SeasonBanner onOpen={() => setScreen('quests')} />
         </div>
       </div>
+
+      <FeaturedStrip />
 
       <Modal open={!!offline} onClose={() => setOffline(null)} title="Welcome back!">
         <div className="flex items-center gap-4">
           <ChogSprite look={lo.look} size={88} />
           <p className="text-dim">
             Your bots kept working for <b className="text-ink">{offline ? offline.hours.toFixed(1) : 0}h</b> and earned
-            <span className="mt-1 flex items-center gap-1 font-pixel text-3xl text-gold"><Spark /> {fmt(offline?.earned ?? 0)}</span>
+            <span className="mt-1 flex items-center gap-1 font-display text-3xl text-gold"><Spark /> {fmt(offline?.earned ?? 0)}</span>
           </p>
         </div>
         <Button className="mt-4 w-full" tone="gold" onClick={() => { sfx.coin(); setOffline(null); }}>Collect</Button>
       </Modal>
     </div>
+  );
+}
+
+function SeasonBanner({ onOpen }: { onOpen: () => void }) {
+  const days = Math.max(0, Math.ceil((SEASON.end - Date.now()) / 86_400_000));
+  return (
+    <button onClick={onOpen} className="group relative h-40 overflow-hidden rounded-[28px] border border-line text-left">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={ART.heroRunner} alt="" className="absolute inset-0 size-full object-cover object-[30%_40%] transition duration-500 group-hover:scale-105" />
+      <div className="absolute inset-0 bg-gradient-to-r from-[#1b1236]/90 via-[#1b1236]/40 to-transparent" />
+      <div className="relative flex h-full flex-col justify-end p-5 text-white">
+        <div className="eyebrow !text-white/70">Season 1 · {days} days left</div>
+        <div className="mt-1 font-display text-2xl font-semibold italic">Spikes Rising</div>
+        <div className="mt-1 text-sm text-white/80">Speed Runner gear unlocks at pass tier 3.</div>
+      </div>
+    </button>
+  );
+}
+
+function FeaturedStrip() {
+  const setScreen = useGame((s) => s.setScreen);
+  const items = [
+    { title: 'The Wild Chog', sub: 'Five zones. One curious creature.', img: ART.heroWild, go: 'campaign' as const, eyebrow: 'Campaign' },
+    { title: GEAR[2].name, sub: GEAR[2].tagline, img: GEAR[2].hero, go: 'lab' as const, eyebrow: 'Holder gear' },
+    { title: GEAR[1].name, sub: GEAR[1].tagline, img: GEAR[1].hero, go: 'lab' as const, eyebrow: 'Holder gear' },
+  ];
+  return (
+    <section>
+      <div className="eyebrow mb-3 mt-2">Featured</div>
+      <div className="scroll-x -mx-4 flex snap-x gap-3 px-4 pb-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:px-0">
+        {items.map((it) => (
+          <button key={it.title} onClick={() => setScreen(it.go)} className="group relative h-56 w-[78%] shrink-0 snap-start overflow-hidden rounded-[28px] border border-line text-left sm:w-auto">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={it.img} alt="" loading="lazy" className="absolute inset-0 size-full object-cover transition duration-500 group-hover:scale-105" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#1b1236]/90 via-[#1b1236]/10 to-transparent" />
+            <div className="absolute inset-x-0 bottom-0 p-5 text-white">
+              <div className="eyebrow !text-white/70">{it.eyebrow}</div>
+              <div className="mt-1 font-display text-xl font-semibold">{it.title}</div>
+              <div className="text-sm text-white/75">{it.sub}</div>
+            </div>
+          </button>
+        ))}
+      </div>
+    </section>
   );
 }

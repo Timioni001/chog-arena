@@ -35,6 +35,8 @@ export interface Progress {
   pass: { season: number; xp: number; free: number[]; holder: number[] };
   history: MatchSummary[];
   cosmetics: string[];
+  /** Equipped gear set (cosmetic), e.g. "runner". */
+  gear?: string | null;
   nextBotUid: number;
   /** Sources/sinks ledger for the economy dashboard. */
   ledger: Record<string, number>;
@@ -332,6 +334,11 @@ export function claimPass(p: Progress, tier: number, track: 'free' | 'holder', i
     case 'cosmetic': next = { ...next, cosmetics: [...new Set([...next.cosmetics, reward.id])] }; break;
   }
   return next;
+}
+
+export function equipGear(p: Progress, gear: string | null): Progress | null {
+  if (gear !== null && !p.cosmetics.includes(`gear-${gear}`)) return null;
+  return { ...p, gear };
 }
 
 export { PASS_XP_PER_TIER };

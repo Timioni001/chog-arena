@@ -15,7 +15,10 @@ import { appearanceOf } from '@/lib/appearance';
 import { isValidTokenId } from '@/game/collection';
 import { COLLECTION, marketLinks, traitCount } from '@/game/collection';
 import { SKILL_TREE, ASCENSIONS, type Branch } from '@/game/progression';
-import { rankSkill, respec } from '@/game/progress';
+import { equipGear, rankSkill, respec } from '@/game/progress';
+import { GEAR, type GearId } from '@/lib/art';
+import type { Gear } from '../three/ChogModel';
+import { Lock, Check } from 'lucide-react';
 import { ELEMENT_META } from '@/game/elements';
 import type { StatKey } from '@/game/types';
 import { sfx } from '@/lib/sound';
@@ -49,6 +52,8 @@ export function LabScreen() {
     setPreviewId(n);
   };
   const anims: AnimCue['kind'][] = ['tap', 'charge', 'attack', 'hit', 'win', 'levelup'];
+  const [tryOn, setTryOn] = useState<GearId | null>(null);
+  const gear = (tryOn ?? (preview ? null : p.gear ?? null)) as Gear;
 
   return (
     <div className="space-y-4">
@@ -63,27 +68,27 @@ export function LabScreen() {
       {preview && <div className="rounded-2xl border border-gold/40 bg-gold/10 px-4 py-2 text-sm">Previewing token #{preview.tokenId}: view only. Stats shown without skills or holdings.</div>}
       <div className="grid gap-4 lg:grid-cols-[1fr_1fr]">
         <div className="space-y-3">
-          <div className="relative h-[420px] overflow-hidden rounded-[28px] border border-line">
+          <div className="relative h-[440px] overflow-hidden rounded-[32px] border border-line">
             {gl ? (
               <Stage quality={quality} reducedMotion={reduced} className="absolute inset-0" camera={[0, 1.4, 5.4]}>
                 <World backdrop="studio" />
-                <ChogModel look={look} cue={cue} ascension={preview ? 0 : lo.ascension.ring} />
+                <ChogModel look={look} cue={cue} ascension={preview ? 0 : lo.ascension.ring} gear={gear} />
                 <OrbitControls enablePan={false} enableZoom={false} target={[0, 1.15, 0]} minPolarAngle={Math.PI / 3} maxPolarAngle={Math.PI / 1.9} />
               </Stage>
             ) : (
               <div className="grid h-full place-items-center bg-panel"><ChogSprite look={look} size={280} /></div>
             )}
             <div className="pointer-events-none absolute left-3 top-3 space-y-1.5">
-              <div className="font-pixel text-2xl text-white drop-shadow">{pr.name}{pr.title ? ` “${pr.title}”` : ''}</div>
+              <div className="font-display text-[1.7rem] font-semibold text-white drop-shadow">{pr.name}{pr.title ? ` “${pr.title}”` : ''}</div>
               <div className="flex flex-wrap gap-1.5">
                 <ElementBadge element={pr.element} />
-                <Pill className="!bg-black/40 !text-white">{ARCHETYPES[pr.archetype].name}</Pill>
-                {pr.tier && <Pill className="!bg-black/40 !text-white">{pr.tier}</Pill>}
+                <span className="rounded-full bg-[#1b1236]/45 px-2.5 py-0.5 text-xs font-semibold text-white backdrop-blur">{ARCHETYPES[pr.archetype].name}</span>
+                {pr.tier && <span className="rounded-full bg-[#1b1236]/45 px-2.5 py-0.5 text-xs font-semibold text-white backdrop-blur">{pr.tier}</span>}
               </div>
             </div>
             <div className="absolute inset-x-2 bottom-2 flex flex-wrap justify-center gap-1">
               {anims.map((a) => (
-                <button key={a} onClick={() => setCue((c) => ({ kind: a, id: c.id + 1 }))} className="min-h-8 rounded-full bg-black/45 px-2.5 text-xs font-bold capitalize text-white backdrop-blur">{a}</button>
+                <button key={a} onClick={() => setCue((c) => ({ kind: a, id: c.id + 1 }))} className="min-h-8 rounded-full bg-[#1b1236]/50 px-3 text-xs font-semibold capitalize text-white backdrop-blur">{a}</button>
               ))}
             </div>
           </div>
@@ -111,7 +116,7 @@ export function LabScreen() {
             <div className="space-y-2.5">
               {(Object.keys(STAT_INFO) as StatKey[]).map((k) => (
                 <div key={k}>
-                  <div className="flex justify-between text-sm"><span className="font-bold" style={{ color: STAT_INFO[k].color }}>{STAT_INFO[k].label}</span><span className="font-pixel">{stats[k]}</span></div>
+                  <div className="flex justify-between text-sm"><span className="font-bold" style={{ color: STAT_INFO[k].color }}>{STAT_INFO[k].label}</span><span className="font-display">{stats[k]}</span></div>
                   <Bar value={stats[k]} max={45} color={STAT_INFO[k].color} height={8} />
                   <div className="mt-0.5 text-[11px] text-dim">{STAT_INFO[k].text}</div>
                 </div>
@@ -132,7 +137,7 @@ export function LabScreen() {
                   return (
                     <div key={t.type} className="rounded-xl border border-line bg-panel-2 px-3 py-2">
                       <div className="text-[11px] font-bold uppercase tracking-wide text-dim">{t.type}</div>
-                      <div className="truncate font-extrabold">{t.value}</div>
+                      <div className="truncate font-semibold">{t.value}</div>
                       {!pr.isGuest && <div className="text-[11px] text-dim">{c} have this · {((c / COLLECTION.supply) * 100).toFixed(1)}%</div>}
                     </div>
                   );
@@ -142,6 +147,33 @@ export function LabScreen() {
           </Panel>
         </div>
       </div>
+
+      <Panel>
+        <Title eyebrow="Wardrobe" sub="Gear sets dress your 3D Chog. Earn them on the season pass.">Gear</Title>
+        <div className="grid gap-3 sm:grid-cols-3">
+          {GEAR.map((g) => {
+            const owned = p.cosmetics.includes(`gear-${g.id}`);
+            const on = p.gear === g.id;
+            return (
+              <div key={g.id} className="overflow-hidden rounded-[24px] border border-line bg-panel-2">
+                <div className="relative h-40">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={g.art} alt="" loading="lazy" className="absolute inset-0 size-full object-cover" />
+                  {!owned && <div className="absolute right-2 top-2 flex items-center gap-1 rounded-full bg-[#1b1236]/70 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur"><Lock size={12} /> {g.unlock.track === 'holder' ? 'Holder' : 'Free'} pass · tier {g.unlock.tier}</div>}
+                </div>
+                <div className="p-4">
+                  <div className="font-display text-lg font-semibold">{g.name}</div>
+                  <p className="text-sm text-dim">{g.tagline}</p>
+                  <div className="mt-3 flex gap-2">
+                    <Button size="sm" tone="panel" onClick={() => setTryOn(tryOn === g.id ? null : g.id)}>{tryOn === g.id ? 'Stop preview' : 'Try on'}</Button>
+                    {owned && <Button size="sm" tone={on ? 'ghost' : 'chog'} onClick={() => { update((cur) => equipGear(cur, on ? null : g.id)); setTryOn(null); }}>{on ? <><Check size={14} /> Equipped</> : 'Equip'}</Button>}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </Panel>
 
       <Panel>
         <Title sub="Trait cards come from your Chog. Rarer trait values hit harder.">Trait cards</Title>
@@ -155,7 +187,7 @@ export function LabScreen() {
         <div className="grid gap-3 md:grid-cols-3">
           {(['attack', 'defense', 'economy'] as Branch[]).map((b) => (
             <div key={b} className="rounded-2xl border border-line bg-panel-2 p-3">
-              <div className="mb-2 font-pixel capitalize" style={{ color: b === 'attack' ? ELEMENT_META.flame.color : b === 'defense' ? ELEMENT_META.moss.color : '#ffd166' }}>{b}</div>
+              <div className="mb-2 font-display capitalize" style={{ color: b === 'attack' ? ELEMENT_META.flame.color : b === 'defense' ? ELEMENT_META.moss.color : '#ffd166' }}>{b}</div>
               <div className="space-y-2">
                 {SKILL_TREE.filter((n) => n.branch === b).map((n) => {
                   const r = p.skills[n.id] ?? 0;
@@ -163,7 +195,7 @@ export function LabScreen() {
                   return (
                     <div key={n.id} className={`flex items-center gap-2 rounded-xl bg-panel p-2 ${locked ? 'opacity-50' : ''}`}>
                       <div className="min-w-0 flex-1">
-                        <div className="text-sm font-extrabold">{n.name}</div>
+                        <div className="text-sm font-semibold">{n.name}</div>
                         <div className="text-[11px] text-dim">{n.text}</div>
                         <div className="mt-1 flex gap-1">{Array.from({ length: n.maxRank }, (_, i) => <span key={i} className={`h-1.5 w-4 rounded-full ${i < r ? 'bg-gold' : 'bg-line'}`} />)}</div>
                       </div>
@@ -184,7 +216,7 @@ export function LabScreen() {
         <div className="scroll-x flex gap-2">
           {ASCENSIONS.map((a) => (
             <div key={a.name} className={`shrink-0 rounded-2xl border px-3 py-2 text-center ${p.level >= a.level ? 'border-gold bg-gold/10' : 'border-line bg-panel-2 opacity-70'}`}>
-              <div className="font-pixel">{a.name}</div>
+              <div className="font-display">{a.name}</div>
               <div className="text-xs text-dim">Level {a.level}</div>
             </div>
           ))}

@@ -7,6 +7,7 @@ import { useMatchCtx } from '../match/useMatchCtx';
 import { Button, ElementBadge, Panel, Title } from '../ui';
 import { useLoadout, useProgress } from '@/lib/hooks';
 import { useGame } from '@/lib/store';
+import { ZONE_ART } from '@/lib/art';
 
 export function CampaignScreen() {
   const p = useProgress();
@@ -25,24 +26,28 @@ export function CampaignScreen() {
         const prevZoneDone = zi === 0 || ZONES[zi - 1].stages.every((s) => cleared(s.id));
         const holderLocked = zone.requiresHolder && !lo.isHolder;
         return (
-          <section key={zone.id} className="overflow-hidden rounded-3xl border border-line" style={{ background: `linear-gradient(135deg, ${zone.sky[0]}55, ${zone.sky[1]}cc)` }}>
-            <div className="flex items-center justify-between gap-3 bg-black/25 px-4 py-3 text-white">
-              <div>
-                <h3 className="font-pixel text-xl">{zone.name}</h3>
+          <section key={zone.id} className="glass overflow-hidden rounded-[32px]">
+            <div className="relative flex h-44 items-end justify-between gap-3 p-5 text-white">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={ZONE_ART[zone.id]} alt="" loading="lazy" className="absolute inset-0 size-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#1b1236]/90 via-[#1b1236]/25 to-transparent" />
+              <div className="relative">
+                <div className="eyebrow !text-white/70">Zone {zi + 1}</div>
+                <h3 className="font-display text-[1.7rem] font-semibold leading-tight">{zone.name}</h3>
                 <p className="text-sm text-white/75">{zone.tagline}</p>
               </div>
-              {zone.requiresHolder && <span className="rounded-full bg-gold px-2 py-0.5 text-xs font-black text-[#2a1a00]">HOLDERS</span>}
+              {zone.requiresHolder && <span className="relative rounded-full bg-gold px-3 py-1 text-[11px] font-bold tracking-wider text-[#3a2400]">HOLDERS</span>}
             </div>
             <div className="grid gap-2 p-3 sm:grid-cols-3">
               {zone.stages.map((st, si) => {
                 const unlocked = !holderLocked && prevZoneDone && (si === 0 || cleared(zone.stages[si - 1].id));
                 const stars = p.campaign[st.id] ?? 0;
                 return (
-                  <Panel key={st.id} className={`!bg-panel/90 ${unlocked ? '' : 'opacity-60'}`}>
+                  <div key={st.id} className={`rounded-[22px] border border-line bg-panel-2 p-4 ${unlocked ? '' : 'opacity-55'}`}>
                     <div className="flex items-start justify-between gap-2">
                       <div>
                         <div className="text-xs font-bold text-dim">Stage {si + 1}</div>
-                        <div className="flex items-center gap-1 font-extrabold">{st.enemy.boss && <Crown size={14} className="text-gold" />}{st.name}</div>
+                        <div className="flex items-center gap-1 font-semibold">{st.enemy.boss && <Crown size={14} className="text-gold" />}{st.name}</div>
                         <div className="text-xs text-dim">vs {st.enemy.name}</div>
                       </div>
                       <ElementBadge element={st.enemy.element} />
@@ -58,7 +63,7 @@ export function CampaignScreen() {
                       )}
                     </div>
                     {!stars && <div className="mt-1 text-[11px] text-dim">First clear: +{st.reward.sparks} Sparks</div>}
-                  </Panel>
+                  </div>
                 );
               })}
             </div>

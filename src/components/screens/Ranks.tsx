@@ -45,7 +45,7 @@ export function RanksScreen() {
         <Panel className="!p-2">
           {q.isLoading ? <div className="p-6 text-center text-dim">Loading…</div> : q.isError ? <div className="p-6 text-center text-dim">{(q.error as Error).message}</div> : (q.data?.rows.length ?? 0) === 0 ? (
             <div className="p-8 text-center">
-              <div className="font-pixel text-xl">No ranked results yet</div>
+              <div className="font-display text-xl">No ranked results yet</div>
               <p className="mt-1 text-sm text-dim">Every row here is a real, server-verified ranked match. Be the first on this board.</p>
             </div>
           ) : (
@@ -56,7 +56,7 @@ export function RanksScreen() {
         </Panel>
       )}
       <Panel className="text-sm text-dim">
-        <div className="mb-1 flex items-center gap-2 font-extrabold text-ink"><Shield size={16} /> Fair-play rules</div>
+        <div className="mb-1 flex items-center gap-2 font-semibold text-ink"><Shield size={16} /> Fair-play rules</div>
         <ul className="list-disc space-y-1 pl-5">
           <li>Scores come only from matches the server replays from seed and moves. Clients can’t submit scores.</li>
           <li>Ownership is checked onchain at match start and finish. A Chog that changes hands sits out prize boards for 24h.</li>
@@ -73,10 +73,10 @@ function LbRow({ r, me }: { r: Row; me: boolean }) {
   const look = useMemo(() => appearanceOf(profileForToken(r.tokenId)), [r.tokenId]);
   return (
     <li className={`flex items-center gap-3 rounded-2xl px-2 py-2 ${me ? 'bg-chog/15' : ''}`}>
-      <span className={`w-8 text-center font-pixel text-lg ${r.rank <= 3 ? 'text-gold' : 'text-dim'}`}>{r.rank}</span>
+      <span className={`w-8 text-center font-display text-lg ${r.rank <= 3 ? 'text-gold' : 'text-dim'}`}>{r.rank}</span>
       <ChogSprite look={look} size={44} />
       <div className="min-w-0 flex-1">
-        <div className="truncate font-extrabold">{r.name}{me && <span className="ml-1 text-xs text-chog-2">(you)</span>}</div>
+        <div className="truncate font-semibold">{r.name}{me && <span className="ml-1 text-xs text-chog-2">(you)</span>}</div>
         <div className="flex flex-wrap items-center gap-1.5 text-xs text-dim">
           <ElementBadge element={r.element} />
           {r.tier && <span>{r.tier}</span>}
@@ -85,7 +85,7 @@ function LbRow({ r, me }: { r: Row; me: boolean }) {
         </div>
       </div>
       <div className="text-right">
-        <div className="font-pixel text-lg">{r.score.toLocaleString()}</div>
+        <div className="font-display text-lg">{r.score.toLocaleString()}</div>
         <div className="text-[11px] text-dim">{r.mmr} MMR · {r.wins}/{r.games}</div>
       </div>
     </li>
@@ -120,7 +120,7 @@ function Clans({ rows, loading }: { rows: ClanRow[]; loading: boolean }) {
         <div className="flex flex-wrap items-center gap-3">
           <Users className="text-chog-2" />
           <div className="min-w-0 flex-1">
-            {mine ? <><div className="font-extrabold">[{mine.tag}] {mine.name}</div><div className="text-sm text-dim">{mine.members.length} members · {mine.points.toLocaleString()} season pts · chest milestones at 1k / 5k / 20k / 60k</div></> : <><div className="font-extrabold">Clans</div><div className="text-sm text-dim">Holders create and lead clans. Members’ ranked points fill the clan chest.</div></>}
+            {mine ? <><div className="font-semibold">[{mine.tag}] {mine.name}</div><div className="text-sm text-dim">{mine.members.length} members · {mine.points.toLocaleString()} season pts · chest milestones at 1k / 5k / 20k / 60k</div></> : <><div className="font-semibold">Clans</div><div className="text-sm text-dim">Holders create and lead clans. Members’ ranked points fill the clan chest.</div></>}
           </div>
           {mine ? <Button size="sm" tone="ghost" onClick={() => act({ action: 'leave' })}>Leave</Button> : <Button size="sm" disabled={!lo.isHolder} onClick={() => setOpen(true)}>Create clan</Button>}
         </div>
@@ -130,11 +130,11 @@ function Clans({ rows, loading }: { rows: ClanRow[]; loading: boolean }) {
           <ol className="divide-y divide-line">
             {rows.map((c) => (
               <li key={c.id} className="flex items-center gap-3 px-2 py-2.5">
-                <span className="w-8 text-center font-pixel text-lg text-dim">{c.rank}</span>
+                <span className="w-8 text-center font-display text-lg text-dim">{c.rank}</span>
                 <Pill color="#a98bff">{c.tag}</Pill>
-                <div className="min-w-0 flex-1 truncate font-extrabold">{c.name}</div>
+                <div className="min-w-0 flex-1 truncate font-semibold">{c.name}</div>
                 <span className="text-xs text-dim">{c.members.length}/30</span>
-                <span className="w-20 text-right font-pixel">{c.points.toLocaleString()}</span>
+                <span className="w-20 text-right font-display">{c.points.toLocaleString()}</span>
                 {!mine && lo.isHolder && <Button size="sm" tone="panel" onClick={() => act({ action: 'join', clanId: c.id })}>Join</Button>}
               </li>
             ))}
