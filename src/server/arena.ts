@@ -104,7 +104,7 @@ export async function ownershipLock(tokenId: number, owner: Address): Promise<{ 
   return { lockedUntil: until > Date.now() ? until : null };
 }
 
-export async function startMatch(args: { mode: Mode; tokenId: number | null; address: Address | null; stageId?: string; challenge?: string }): Promise<PendingMatch & { lockedUntil: number | null }> {
+export async function startMatch(args: { mode: Mode; tokenId: number | null; address: Address | null; stageId?: string; challenge?: string }): Promise<PendingMatch & { lockedUntil: number | null; ticket: string }> {
   const { mode } = args;
   let tokenId = args.tokenId;
   let lockedUntil: number | null = null;
@@ -146,7 +146,8 @@ export async function startMatch(args: { mode: Mode; tokenId: number | null; add
   }
   const pending: PendingMatch = { id, seed: challenge?.seed ?? seed, mode, tokenId, address: args.address, verified, opponent, lanes, challenge, createdAt: Date.now() };
   await kv().set(`match:${id}`, pending, MATCH_TTL);
-  return { ...pending, lockedUntil };
+  // The sealed ticket lets any server instance finish the match (Workers isolates don't share memory).
+  return { ...pending, lockedUntil, ticket: seal({ ...pending, exp: Date.now() + MATCH_TTL * 1000 }) };
 }
 
 export function sanitizeBots(bots: unknown, slots: number): OwnedBot[] {
@@ -191,11 +192,20 @@ export interface FinishResult {
   challengeLink: string | null;
 }
 
-export async function finishMatch(args: { matchId: string; plays: Play[][]; bots: unknown; owned: number; skills?: Record<string, number>; address: Address | null; displayName?: string; hideWallet?: boolean }): Promise<FinishResult> {
-  const pending = await kv().get<PendingMatch>(`match:${args.matchId}`);
+export async function finishMatch(args: { matchId: string; ticket?: string; plays: Play[][]; bots: unknown; owned: number; skills?: Record<string, number>; address: Address | null; displayName?: string; hideWallet?: boolean }): Promise<FinishResult> {
+  let pending = await kv().get<PendingMatch>(`match:${args.matchId}`);
+  if (!pending) {
+    const t = unseal<PendingMatch & { exp: number }>(args.ticket);
+    if (t && t.id === args.matchId && t.exp > Date.now()) pending = t;
+  }
   if (!pending) throw new ArenaError(404, 'Match expired or already finished.');
   if (pending.address && (!args.address || getAddress(pending.address) !== getAddress(args.address))) throw new ArenaError(403, 'Not your match.');
+  if (await kv().get(`done:${pending.id}`)) throw new ArenaError(409, 'Match already finished.');
+  await kv().set(`done:${pending.id}`, 1, MATCH_TTL);
   await kv().del(`match:${args.matchId}`);
+  if (pending.mode === 'ranked' && kv().kind === 'memory' && process.env.NODE_ENV === 'production') {
+    console.warn('[chog-arena] ranked results are using the in-memory store; set UPSTASH_REDIS_REST_URL/TOKEN.');
+  }
 
   const profile = pending.tokenId === null ? guestProfile() : profileForToken(pending.tokenId);
   const bots = sanitizeBots(args.bots, botSlots(pending.tokenId !== null, profile.tier));

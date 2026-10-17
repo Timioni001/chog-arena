@@ -20,7 +20,7 @@ cp .env.example .env.local     # optional: everything has safe defaults
 npm run dev                    # http://localhost:3000
 ```
 
-Production: `npm run build && npm start`. Set `SESSION_SECRET` and, for persistent boards, `UPSTASH_REDIS_REST_URL/TOKEN`.
+Production on Cloudflare Workers (OpenNext): `npm run deploy`. Every key, step by step from WSL: **[docs/DEPLOY.md](docs/DEPLOY.md)**. Local Workers preview: `npm run preview`.
 
 ## Test it
 
@@ -54,7 +54,7 @@ Research and verification notes: [`docs/collection-research.md`](docs/collection
 
 ## Stack
 
-Next.js 15 (App Router) · TypeScript · React Three Fiber + drei · Zustand · Tailwind 4 · Framer Motion · wagmi + viem (SIWE, Multicall3) · Upstash Redis (optional) · Foundry · Vitest · PWA.
+Next.js 15 (App Router) on Cloudflare Workers via OpenNext · TypeScript · React Three Fiber + drei · Zustand · Tailwind 4 · Framer Motion · wagmi + viem (SIWE, Multicall3) · Upstash Redis (optional) · Foundry · Vitest · PWA.
 
 More: [architecture](docs/architecture.md) · [economy](docs/economy.md) · [pitch & demo script](docs/pitch.md) · [assets](ASSETS.md).
 
