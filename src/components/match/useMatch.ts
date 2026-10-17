@@ -52,6 +52,7 @@ export interface MatchOutcome {
 
 export interface Session {
   id: string | null;
+  ticket: string | null;
   seed: string;
   mode: MatchMode;
   stageId?: string;
@@ -102,16 +103,18 @@ export const useMatch = create<MatchStore>((set, get) => ({
     set({ busy: true });
     try {
       let id: string | null = null;
+      let ticket: string | null = null;
       let seed = localSeed();
       let desc: OpponentDesc | null = null;
       let lanes: LaneKind[] | undefined;
       let challenge: Session['challenge'] = null;
       let online = false;
       try {
-        const r = await api<{ matchId: string; seed: string; opponent: OpponentDesc; lanes: LaneKind[] | null; challenge: { name: string; score: number } | null; lockedUntil: number | null }>('/api/match/start', {
+        const r = await api<{ matchId: string; ticket: string; seed: string; opponent: OpponentDesc; lanes: LaneKind[] | null; challenge: { name: string; score: number } | null; lockedUntil: number | null }>('/api/match/start', {
           json: { mode, tokenId: ctx.tokenId, stageId: opts.stageId, challenge: opts.challenge },
         });
         id = r.matchId;
+        ticket = r.ticket;
         seed = r.seed;
         desc = r.opponent;
         lanes = r.lanes ?? undefined;
@@ -135,7 +138,7 @@ export const useMatch = create<MatchStore>((set, get) => ({
       const { fighter: opponent, level } = buildOpponent(desc, seed, ctx.tokenId);
       const state = createBattle(seed, ctx.fighter, opponent, lanes);
       set({
-        session: { id, seed, mode, stageId: opts.stageId, ctx, opponent, opponentDesc: desc, level, lanes, state, plays: [], staged: [], phase: 'plan', hidden: new Set(), floaters: [], lastEvents: [], outcome: null, challenge, online },
+        session: { id, ticket, seed, mode, stageId: opts.stageId, ctx, opponent, opponentDesc: desc, level, lanes, state, plays: [], staged: [], phase: 'plan', hidden: new Set(), floaters: [], lastEvents: [], outcome: null, challenge, online },
       });
       sfx.reveal();
     } catch (e) {
@@ -262,7 +265,7 @@ async function finish() {
   if (s.online && s.id) {
     try {
       const r = await api<{ result: BattleResult; mmr: number | null; mmrDelta: number; rank: number | null; attestation: Attestation | null; rewardsLockedUntil: number | null; challengeLink: string | null }>('/api/match/finish', {
-        json: { matchId: s.id, plays: s.plays, bots: s.ctx.bots, owned: s.ctx.owned, skills: s.ctx.skills, displayName: s.ctx.displayName, hideWallet: s.ctx.hideWallet },
+        json: { matchId: s.id, ticket: s.ticket, plays: s.plays, bots: s.ctx.bots, owned: s.ctx.owned, skills: s.ctx.skills, displayName: s.ctx.displayName, hideWallet: s.ctx.hideWallet },
       });
       result = r.result;
       verified = JSON.stringify(r.result.laneWinners) === JSON.stringify(s.state.result.laneWinners);
