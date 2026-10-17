@@ -1,0 +1,112 @@
+{
+  "$comment": "Trait → game mapping. Rules are matched in order against the real trait value (case-insensitive regex). Nothing here invents traits: values come from the indexed collection; this file only decides what each value does in game.",
+  "elementKeywords": [
+    { "match": "fire|fiery|burn|flame|ember|blaze|red|orange|sun|gold|midas|dragon|blood|redd|devil|demon|krown", "element": "flame" },
+    { "match": "aqua|blue|sky|tide|water|cyan|shark|wind|cool|duck|ocean|noble|deep|squid", "element": "tide" },
+    { "match": "green|mint|lime|leaf|moss|jade|frog|fwog|toad|radioactive|pepe|shroom|farmer|banana", "element": "moss" }
+  ],
+  "statByCategory": {
+    "Head": "power",
+    "Eyes": "luck",
+    "Mouth": "focus",
+    "Body": "guard",
+    "Background": "speed",
+    "Skin": "speed",
+    "Aura": "focus",
+    "Accessory": "luck"
+  },
+  "baseStats": {
+    "Origin": { "power": 12, "speed": 12, "guard": 12, "luck": 8, "focus": 12 },
+    "Skull": { "power": 14, "speed": 11, "guard": 14, "luck": 8, "focus": 12 },
+    "Radioactive": { "power": 14, "speed": 14, "guard": 12, "luck": 10, "focus": 13 },
+    "1:1": { "power": 17, "speed": 16, "guard": 16, "luck": 12, "focus": 16 },
+    "Guest": { "power": 10, "speed": 10, "guard": 10, "luck": 6, "focus": 10 }
+  },
+  "tierMultiplier": { "Common": 1, "Uncommon": 1.03, "Rare": 1.06, "Epic": 1.09, "Legendary": 1.12 },
+  "cards": {
+    "Head": [
+      { "match": "crown|wreath|thorn|seal|diamond", "name": "Royal Decree", "cost": 4, "power": 4, "ability": { "kind": "rally", "amount": 2 }, "glyph": "crown", "text": "Everyone stands a little taller." },
+      { "match": "horn", "name": "Horn Charge", "cost": 3, "power": 4, "ability": { "kind": "lone", "amount": 3 }, "glyph": "horn", "text": "Head down. Full send." },
+      { "match": "helmet", "name": "Shield Bash", "cost": 3, "power": 4, "ability": { "kind": "ward" }, "glyph": "helmet", "text": "This is the wall." },
+      { "match": "wizard", "name": "Hex Hat", "cost": 3, "power": 3, "ability": { "kind": "hex", "amount": 2 }, "glyph": "wizard", "text": "Pointy hat, pointy spell." },
+      { "match": "3rd eye|laser|8 ball", "name": "Third Sight", "cost": 3, "power": 4, "ability": { "kind": "lucky", "chance": 0.4 }, "glyph": "eye", "text": "Saw that coming." },
+      { "match": "beanie|durag|wrap|bandana", "name": "Cozy Bonk", "cost": 2, "power": 4, "ability": { "kind": "none" }, "glyph": "beanie", "text": "Warm head, cold hit." },
+      { "match": "headband", "name": "Focus Band", "cost": 2, "power": 3, "ability": { "kind": "lucky", "chance": 0.3 }, "glyph": "band", "text": "Eyes on the prize." },
+      { "match": "hair|wig", "name": "Hair Whip", "cost": 2, "power": 3, "ability": { "kind": "echo" }, "glyph": "hair", "text": "Flick. Swish. Draw." },
+      { "match": "clown|nose", "name": "Honk", "cost": 2, "power": 2, "ability": { "kind": "hex", "amount": 1 }, "glyph": "honk", "text": "HONK." },
+      { "match": "robber|neet|plumber|russian|mafia|shroom|banana", "name": "Sneak Hit", "cost": 3, "power": 3, "ability": { "kind": "surge", "amount": 4 }, "glyph": "sneak", "text": "Shows up right at the end." },
+      { "match": "cap|hat|chog", "name": "Cap Smash", "cost": 3, "power": 5, "ability": { "kind": "none" }, "glyph": "cap", "text": "Brim first." },
+      { "match": "none", "name": "Bare Bonk", "cost": 2, "power": 3, "ability": { "kind": "none" }, "glyph": "bonk", "text": "Spikes are hat enough." }
+    ],
+    "Eyes": [
+      { "match": "laser", "name": "Laser Beam", "cost": 4, "power": 4, "ability": { "kind": "hex", "amount": 2 }, "glyph": "laser", "text": "Pew, but personal." },
+      { "match": "visor", "name": "Visor Lock", "cost": 3, "power": 4, "ability": { "kind": "lucky", "chance": 0.35 }, "glyph": "visor", "text": "Target acquired." },
+      { "match": "glass|vr|mog|viper|thug", "name": "Cool Stare", "cost": 3, "power": 3, "ability": { "kind": "lone", "amount": 4 }, "glyph": "shades", "text": "Doesn't need backup." },
+      { "match": "heart", "name": "Heart Eyes", "cost": 2, "power": 2, "ability": { "kind": "rally", "amount": 1 }, "glyph": "heart", "text": "Love is a buff." },
+      { "match": "cry|tear|teary", "name": "Big Tears", "cost": 1, "power": 1, "ability": { "kind": "charge", "amount": 2 }, "glyph": "tear", "text": "Cry now, win later." },
+      { "match": "dead|xd|tired|flat|closed|retard", "name": "Blank Stare", "cost": 2, "power": 3, "ability": { "kind": "hex", "amount": 1 }, "glyph": "blank", "text": "Unsettling. Effective." },
+      { "match": "angry|vertical|smirk|side", "name": "Side Eye", "cost": 2, "power": 2, "ability": { "kind": "surge", "amount": 3 }, "glyph": "side", "text": "Waiting for the right moment." },
+      { "match": "frog", "name": "Frog Gaze", "cost": 2, "power": 2, "ability": { "kind": "swarm", "amount": 1 }, "glyph": "frog", "text": "Ribbit with friends." },
+      { "match": ".*", "name": "Bright Eyes", "cost": 1, "power": 2, "ability": { "kind": "echo" }, "glyph": "eyes", "text": "Always looking for more." }
+    ],
+    "Mouth": [
+      { "match": "gum|bubble", "name": "Bubble Guard", "cost": 2, "power": 2, "ability": { "kind": "ward" }, "glyph": "bubble", "text": "Pop-proof. Mostly." },
+      { "match": "puke|rainbow", "name": "Rainbow Blast", "cost": 3, "power": 3, "ability": { "kind": "hex", "amount": 2 }, "glyph": "rainbow", "text": "Colorful. Gross. Strong." },
+      { "match": "coin", "name": "Coin Flip", "cost": 3, "power": 3, "ability": { "kind": "lucky", "chance": 0.5 }, "glyph": "coin", "text": "Call it." },
+      { "match": "gold|tooth|grit", "name": "Gold Grin", "cost": 2, "power": 3, "ability": { "kind": "surge", "amount": 3 }, "glyph": "grin", "text": "Smiles at the finish line." },
+      { "match": "drool", "name": "Drool Slick", "cost": 1, "power": 1, "ability": { "kind": "hex", "amount": 1 }, "glyph": "drool", "text": "Watch your step." },
+      { "match": "clown", "name": "Honk Honk", "cost": 1, "power": 1, "ability": { "kind": "echo" }, "glyph": "honk", "text": "Comedy is card advantage." },
+      { "match": "sad|worried|flat|wo", "name": "Pity Party", "cost": 2, "power": 2, "ability": { "kind": "lone", "amount": 3 }, "glyph": "sad", "text": "Party of one." },
+      { "match": "smile|lip", "name": "Big Smile", "cost": 2, "power": 2, "ability": { "kind": "rally", "amount": 1 }, "glyph": "smile", "text": "Contagious." },
+      { "match": ".*", "name": "Chomp", "cost": 2, "power": 3, "ability": { "kind": "none" }, "glyph": "chomp", "text": "Nom." }
+    ],
+    "Body": [
+      { "match": "armor|astro|sci fi|mummy", "name": "Iron Shell", "cost": 4, "power": 6, "ability": { "kind": "ward" }, "glyph": "armor", "text": "Bring a can opener." },
+      { "match": "wizard|jesus|gojo|guko|dragon", "name": "Final Form", "cost": 5, "power": 6, "ability": { "kind": "surge", "amount": 5 }, "glyph": "aura", "text": "This isn't even its final— oh wait, it is." },
+      { "match": "suit|tuxedo|vest|ceo|robe|mafia|chinese|yukata", "name": "Boss Move", "cost": 4, "power": 3, "ability": { "kind": "rally", "amount": 2 }, "glyph": "tux", "text": "Dress for the lane you want." },
+      { "match": "hoodie|jacket|trackset", "name": "Hood Up", "cost": 3, "power": 3, "ability": { "kind": "swarm", "amount": 1 }, "glyph": "hood", "text": "Crew's here." },
+      { "match": "jersey", "name": "Team Jersey", "cost": 3, "power": 4, "ability": { "kind": "swarm", "amount": 1 }, "glyph": "jersey", "text": "Number 143 on the field." },
+      { "match": "banana|duck|shark|toad|squid", "name": "Costume Party", "cost": 2, "power": 3, "ability": { "kind": "echo" }, "glyph": "costume", "text": "Nobody knows it's you." },
+      { "match": "inmate|prisoner|homeless|chug|zero|virgin|bbc|milf|boner|six|cwo", "name": "Street Smarts", "cost": 3, "power": 3, "ability": { "kind": "lone", "amount": 4 }, "glyph": "street", "text": "Works alone." },
+      { "match": "shirt|tee|tank|sleeveless|polo|stripe", "name": "Spine Wall", "cost": 2, "power": 2, "ability": { "kind": "swarm", "amount": 1 }, "glyph": "shirt", "text": "Casual, sturdy." },
+      { "match": ".*", "name": "Bristle Guard", "cost": 3, "power": 3, "ability": { "kind": "ward" }, "glyph": "bristle", "text": "Spikes out." }
+    ],
+    "Accessory": [
+      { "match": "fwog|pepe", "name": "Frog Friend", "cost": 3, "power": 2, "ability": { "kind": "swarm", "amount": 2 }, "glyph": "frog", "text": "Brought a buddy." },
+      { "match": "green candle", "name": "Green Candle", "cost": 4, "power": 4, "ability": { "kind": "surge", "amount": 6 }, "glyph": "candleUp", "text": "Number go up." },
+      { "match": "red candle", "name": "Red Candle", "cost": 4, "power": 3, "ability": { "kind": "hex", "amount": 3 }, "glyph": "candleDown", "text": "Their number goes down." },
+      { "match": "coin", "name": "Lucky Coin", "cost": 2, "power": 2, "ability": { "kind": "lucky", "chance": 0.5 }, "glyph": "coin", "text": "Always lands right." },
+      { "match": "heart", "name": "Love Letter", "cost": 3, "power": 2, "ability": { "kind": "rally", "amount": 2 }, "glyph": "heart", "text": "Signed with spikes." },
+      { "match": "knife", "name": "Sharp Edge", "cost": 2, "power": 3, "ability": { "kind": "lone", "amount": 3 }, "glyph": "edge", "text": "Small, pointy, alone." },
+      { "match": "cigar", "name": "Smoke Screen", "cost": 2, "power": 2, "ability": { "kind": "ward" }, "glyph": "smoke", "text": "Can't hit what you can't see." },
+      { "match": ".*", "name": "Secret Stash", "cost": 2, "power": 3, "ability": { "kind": "echo" }, "glyph": "stash", "text": "Always one more trick." }
+    ],
+    "Aura": [
+      { "match": "none", "name": "Inner Glow", "cost": 1, "power": 1, "ability": { "kind": "charge", "amount": 1 }, "glyph": "glow", "text": "Quiet power." },
+      { "match": ".*", "name": "Aura Burst", "cost": 4, "power": 4, "ability": { "kind": "surge", "amount": 4 }, "glyph": "burst", "text": "Saved the glow for last." }
+    ],
+    "Background": [
+      { "match": ".*", "name": "Home Turf", "cost": 2, "power": 3, "ability": { "kind": "lone", "amount": 2 }, "glyph": "turf", "text": "Fights better at home." }
+    ],
+    "Base": [
+      { "match": "skull", "name": "Bone Rattle", "cost": 3, "power": 4, "ability": { "kind": "hex", "amount": 2 }, "glyph": "skull", "text": "Spooky. Effective." },
+      { "match": "radioactive", "name": "Meltdown", "cost": 5, "power": 6, "ability": { "kind": "surge", "amount": 6 }, "glyph": "atom", "text": "Glows in the dark. And the light." },
+      { "match": "1:1", "name": "One of One", "cost": 5, "power": 7, "ability": { "kind": "rally", "amount": 3 }, "glyph": "star", "text": "There is only one." },
+      { "match": ".*", "name": "Origin Spikes", "cost": 3, "power": 4, "ability": { "kind": "swarm", "amount": 1 }, "glyph": "spikes", "text": "Where it all started." }
+    ]
+  },
+  "synergies": [
+    { "id": "mon", "name": "Mon Maxi", "match": "\\bmon\\b", "min": 2, "bonus": { "focus": 3 } },
+    { "id": "btc", "name": "Orange Pill", "match": "btc|buttcoin", "min": 2, "bonus": { "luck": 3 } },
+    { "id": "clown", "name": "Clown Car", "match": "clown", "min": 2, "bonus": { "luck": 2, "speed": 1 } },
+    { "id": "royal", "name": "Royal Court", "match": "crown|king|royal|noble|gold|ceo", "min": 2, "bonus": { "guard": 3 } },
+    { "id": "toad", "name": "Toad Squad", "match": "toad|frog|fwog|pepe", "min": 2, "bonus": { "speed": 3 } },
+    { "id": "fire", "name": "Firestarter", "match": "fire|fiery|burn|flame|red sky|blood", "min": 2, "bonus": { "power": 3 } },
+    { "id": "sea", "name": "Deep Sea", "match": "aqua|shark|deep blue|deep aqua|duck", "min": 2, "bonus": { "guard": 2, "focus": 1 } },
+    { "id": "wizard", "name": "Wizard School", "match": "wizard", "min": 2, "bonus": { "focus": 3 } },
+    { "id": "squid", "name": "Squid Squad", "match": "squid", "min": 2, "bonus": { "power": 2, "guard": 1 } },
+    { "id": "storm", "name": "Storm Chaser", "match": "laser|electro|thunder|electric|plasma|glitch", "min": 2, "bonus": { "luck": 3 } },
+    { "id": "chog", "name": "Chog Pride", "match": "chog|choggie|143", "min": 2, "bonus": { "power": 1, "speed": 1, "guard": 1 } },
+    { "id": "peace", "name": "Peace Out", "match": "peace|heart|happy|smile", "min": 3, "bonus": { "guard": 1, "focus": 2 } }
+  ]
+}

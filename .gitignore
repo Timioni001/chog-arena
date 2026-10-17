@@ -1,0 +1,11 @@
+node_modules/
+.next/
+out/
+.cache/
+.env
+.env*.local
+*.tsbuildinfo
+next-env.d.ts
+.vercel
+contracts/out/
+contracts/cache/
