@@ -1,7 +1,7 @@
 'use client';
 
 import { AnimatePresence, motion } from 'framer-motion';
-import { Bot, FlaskConical, Home as HomeIcon, Menu, PanelLeftClose, PanelLeftOpen, PawPrint, ScrollText, Swords, Trophy, User, Wallet, X, Zap } from 'lucide-react';
+import { ArrowUp, ArrowUpRight, Bot, FlaskConical, Home as HomeIcon, Menu, PanelLeftClose, PanelLeftOpen, PawPrint, ScrollText, Swords, Trophy, User, Wallet, X, Zap } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useAccount } from 'wagmi';
 import { PLAY_SCREENS, useGame, type Screen } from '@/lib/store';
@@ -25,8 +25,8 @@ import { sfx } from '@/lib/sound';
 import { track } from '@/lib/analytics';
 import { captureReferral } from '@/lib/referral';
 import { INVITEE_ENERGY, currentEnergy } from '@/game/progress';
-import { passTier, PASS_TIERS } from '@/game/season';
-import { art } from '@/lib/art';
+import { passTier, PASS_TIERS, SEASON } from '@/game/season';
+import { art, VARIANTS } from '@/lib/art';
 import { toast } from './ui';
 
 type NavItem = { id: Screen; label: string; icon: typeof HomeIcon; mobile?: boolean; group: 'play' | 'you' };
@@ -310,30 +310,75 @@ function MobileNav({ screen, go }: { screen: Screen; go: (s: Screen) => void }) 
 }
 
 function Footer({ go }: { go: (s: Screen) => void }) {
-  const col = (title: string, items: [string, () => void][]) => (
+  const days = Math.max(0, Math.ceil((SEASON.end - Date.now()) / 86_400_000));
+  const col = (title: string, items: [string, (() => void) | string][]) => (
     <div>
-      <div className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-white/40">{title}</div>
-      <ul className="space-y-2">
-        {items.map(([l, f]) => <li key={l}><button onClick={f} className="text-[0.95rem] font-medium text-white/85 hover:text-white">{l}</button></li>)}
+      <div className="mb-4 text-[11px] font-semibold uppercase tracking-[0.2em] text-white/35">{title}</div>
+      <ul className="space-y-2.5">
+        {items.map(([l, f]) => (
+          <li key={l}>
+            {typeof f === 'string'
+              ? <a href={f} target={f.startsWith('http') ? '_blank' : undefined} rel="noreferrer" className="group inline-flex items-center gap-1 text-[0.95rem] text-white/75 transition hover:text-white">{l}{f.startsWith('http') && <ArrowUpRight size={13} className="opacity-40 transition group-hover:opacity-100" />}</a>
+              : <button onClick={f} className="text-[0.95rem] text-white/75 transition hover:text-white">{l}</button>}
+          </li>
+        ))}
       </ul>
     </div>
   );
-  const link = (href: string) => () => { window.location.href = href; };
   return (
-    <footer className="relative mt-10 overflow-hidden rounded-t-[44px] bg-[#0b0414] pb-28 text-white lg:mr-5 lg:rounded-t-[56px] lg:pb-10">
-      <div className="pointer-events-none absolute -right-24 -top-24 size-80 rounded-full bg-grape/30 blur-3xl" />
-      <div className="relative mx-auto grid max-w-[1380px] gap-10 px-6 pt-12 sm:px-10 md:grid-cols-[1.3fr_1fr_1fr_1fr]">
-        <div>
-          <div className="font-brand text-[3.4rem] leading-[0.85] text-mist sm:text-[4.2rem]">chog<br /><span className="text-chog-2">arena</span></div>
-          <p className="mt-4 max-w-xs text-sm text-white/60">A tap-and-battle arena where your Chog Genesis NFT is the fighter, the account and the progress. Built on Monad.</p>
+    <footer className="relative mt-24 lg:mr-5">
+      {/* the squad stands on the footer's top edge */}
+      <div className="pointer-events-none absolute inset-x-0 -top-[88px] z-10 flex justify-center overflow-hidden px-6 sm:-top-[118px]">
+        <div className="flex items-end">
+          {VARIANTS.map((v, i) => (
+            <Img key={v.id} src={art.cut(v.id)} className="pointer-events-auto -mx-2 h-[96px] w-auto origin-bottom drop-shadow-[0_10px_14px_rgba(0,0,0,0.5)] transition duration-300 hover:-translate-y-2 hover:scale-105 sm:-mx-3 sm:h-[128px]" style={{ zIndex: 10 - Math.abs(i - 4.5) }} />
+          ))}
         </div>
-        {col('Play', [['Battle', () => go('battle')], ['Campaign', () => go('campaign')], ['Chogs', () => go('chogs')], ['Bots', () => go('bots')]])}
-        {col('Compete', [['Ranks', () => go('ranks')], ['Quests & pass', () => go('quests')], ['Chog Lab', () => go('lab')]])}
-        {col('About', [['Terms', link('/terms')], ['Privacy', link('/privacy')], ['Profile & settings', () => go('profile')]])}
       </div>
-      <div className="relative mx-auto mt-10 flex max-w-[1380px] flex-wrap items-center justify-between gap-2 border-t border-white/10 px-6 pt-5 text-[11px] uppercase tracking-[0.16em] text-white/40 sm:px-10">
-        <span>© {new Date().getFullYear()} Chog Arena</span>
-        <span>Chog characters are original art · Monad mainnet</span>
+      <div className="relative overflow-hidden rounded-t-[44px] bg-[#09040f] pb-28 text-white ring-1 ring-white/5 lg:rounded-t-[56px] lg:pb-0">
+        <div className="pointer-events-none absolute -left-32 top-0 size-[28rem] rounded-full bg-grape/25 blur-[120px]" />
+        <div className="pointer-events-none absolute -right-24 bottom-24 size-[24rem] rounded-full bg-cheek/10 blur-[110px]" />
+        <div className="grid-bg pointer-events-none absolute inset-0 opacity-40" />
+
+        {/* last call to action */}
+        <div className="relative mx-auto flex max-w-[1380px] flex-col items-start justify-between gap-6 border-b border-white/10 px-6 pb-10 pt-16 sm:px-10 md:flex-row md:items-end">
+          <div>
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/5 px-3 py-1 text-xs text-white/70 ring-1 ring-white/10">
+              <span className="relative flex size-2"><span className="absolute inset-0 animate-ping rounded-full bg-lime/70" /><span className="relative size-2 rounded-full bg-lime" /></span>
+              Monad mainnet · Season 1 · {days} days left
+            </div>
+            <h2 className="max-w-xl font-display text-[2.3rem] font-bold leading-[1] tracking-[-0.04em] text-mist sm:text-[3.4rem]">Your Chog is waiting<br /><span className="text-chog-2">in the arena.</span></h2>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button onClick={() => go('battle')} className="btn-soft inline-flex min-h-12 items-center gap-2 rounded-full bg-mist px-6 font-semibold text-royal shadow-[0_14px_40px_-14px_rgba(245,235,250,0.6)] hover:bg-white"><Swords size={18} /> Play now</button>
+            <a href="https://opensea.io/collection/chog-genesis" target="_blank" rel="noreferrer" className="btn-soft inline-flex min-h-12 items-center gap-2 rounded-full px-6 font-semibold text-mist ring-1 ring-white/20 hover:bg-white/10">Get a Chog <ArrowUpRight size={16} /></a>
+          </div>
+        </div>
+
+        {/* sitemap */}
+        <div className="relative mx-auto grid max-w-[1380px] grid-cols-2 gap-x-6 gap-y-10 px-6 pb-4 pt-12 sm:px-10 md:grid-cols-[1.4fr_repeat(4,1fr)]">
+          <div className="col-span-2 md:col-span-1">
+            <div className="flex items-center gap-3">
+              <Img src={art.emote('wild', 'happy')} className="size-11 rounded-2xl object-cover ring-1 ring-white/15" />
+              <span className="font-brand text-2xl leading-none text-mist">Chog Arena</span>
+            </div>
+            <p className="mt-4 max-w-xs text-sm leading-relaxed text-white/55">A tap-and-battle arena where your Chog Genesis NFT is the fighter, the account and the progress.</p>
+          </div>
+          {col('Play', [['Battle', () => go('battle')], ['Campaign', () => go('campaign')], ['Bots', () => go('bots')], ['Tap arena', () => go('home')]])}
+          {col('Compete', [['Ranks & clans', () => go('ranks')], ['Quests', () => go('quests')], ['Season pass', () => go('quests')]])}
+          {col('Your Chog', [['Chogs', () => go('chogs')], ['Chog Lab', () => go('lab')], ['Profile', () => go('profile')], ['Collection', 'https://opensea.io/collection/chog-genesis']])}
+          {col('About', [['Terms', '/terms'], ['Privacy', '/privacy'], ['Monad', 'https://www.monad.xyz']])}
+        </div>
+
+        {/* giant wordmark, cut by the bottom edge */}
+        <div className="relative hidden select-none overflow-hidden lg:block" aria-hidden>
+          <div className="translate-y-[22%] whitespace-nowrap text-center font-brand text-[clamp(6rem,15.5vw,15.5rem)] leading-[0.8] text-transparent" style={{ backgroundImage: 'linear-gradient(180deg, rgba(209,196,233,0.22), rgba(123,63,192,0.05) 75%)', WebkitBackgroundClip: 'text', backgroundClip: 'text' }}>chog arena</div>
+        </div>
+
+        <div className="relative mx-auto flex max-w-[1380px] flex-wrap items-center justify-between gap-3 border-t border-white/10 px-6 py-5 text-[11px] uppercase tracking-[0.16em] text-white/40 sm:px-10">
+          <span>© {new Date().getFullYear()} Chog Arena · original character art</span>
+          <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 ring-1 ring-white/15 hover:bg-white/5 hover:text-white">Back to top <ArrowUp size={12} /></button>
+        </div>
       </div>
     </footer>
   );
