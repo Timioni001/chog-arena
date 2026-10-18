@@ -22,7 +22,6 @@ export function BotsScreen() {
   const [tab, setTab] = useState<'dash' | 'shop' | 'chog'>('dash');
   return (
     <div className="space-y-4">
-      <Title sub="Bots earn Sparks around the clock and join your battle deck.">Bots</Title>
       <Tabs value={tab} onChange={setTab} items={[{ id: 'dash', label: 'Dashboard' }, { id: 'shop', label: 'Spark shop' }, { id: 'chog', label: '$CHOG shop' }]} />
       {tab === 'dash' && <Dashboard />}
       {tab === 'shop' && <SparkShop />}

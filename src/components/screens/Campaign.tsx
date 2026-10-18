@@ -4,7 +4,7 @@ import { ArrowLeft, Crown, Lock, Star } from 'lucide-react';
 import { ZONES } from '@/game/campaign';
 import { useMatch } from '../match/useMatch';
 import { useMatchCtx } from '../match/useMatchCtx';
-import { Button, ElementBadge, Panel, Title } from '../ui';
+import { Button, ElementBadge } from '../ui';
 import { useLoadout, useProgress } from '@/lib/hooks';
 import { useGame } from '@/lib/store';
 import { ZONE_ART } from '@/lib/art';
@@ -21,16 +21,16 @@ export function CampaignScreen() {
 
   return (
     <div className="space-y-4">
-      <Title sub={`${totalStars} / ${ZONES.length * 9} stars`} right={<Button tone="ghost" size="sm" onClick={() => setScreen('battle')}><ArrowLeft size={16} /> Battle</Button>}>Campaign</Title>
+      <div className="flex items-center justify-between"><span className="flex items-center gap-1.5 text-sm font-semibold"><Star size={16} className="fill-gold text-gold" /> {totalStars} / {ZONES.length * 9} stars</span><Button tone="ghost" size="sm" onClick={() => setScreen('battle')}><ArrowLeft size={16} /> Battle</Button></div>
       {ZONES.map((zone, zi) => {
         const prevZoneDone = zi === 0 || ZONES[zi - 1].stages.every((s) => cleared(s.id));
         const holderLocked = zone.requiresHolder && !lo.isHolder;
         return (
-          <section key={zone.id} className="glass overflow-hidden rounded-[32px]">
-            <div className="relative flex h-44 items-end justify-between gap-3 p-5 text-white">
+          <section key={zone.id} className="surface overflow-hidden rounded-[32px]">
+            <div className="relative flex h-48 items-end sm:h-56 justify-between gap-3 p-5 text-white">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={ZONE_ART[zone.id]} alt="" loading="lazy" className="absolute inset-0 size-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#1b1236]/90 via-[#1b1236]/25 to-transparent" />
+              <img src={ZONE_ART[zone.id]} alt="" loading="lazy" decoding="async" className="absolute inset-0 size-full object-cover object-[50%_32%]" />
+              <div className="absolute inset-0 bg-gradient-to-t from-night/90 via-night/25 to-transparent" />
               <div className="relative">
                 <div className="eyebrow !text-white/70">Zone {zi + 1}</div>
                 <h3 className="font-display text-[1.7rem] font-semibold leading-tight">{zone.name}</h3>

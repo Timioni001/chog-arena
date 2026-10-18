@@ -1,16 +1,15 @@
 'use client';
 
 import { AnimatePresence, motion } from 'framer-motion';
-import { Bot, ScrollText, Swords, Zap, Flame, Sparkles as SparkIcon } from 'lucide-react';
+import { ArrowUpRight, BatteryCharging, Bot, ChevronRight, Flame, Rocket, Sparkles as SparkIcon, Swords, Zap } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ChogModel, type AnimCue } from '../three/ChogModel';
+import { ChogModel, type AnimCue, type Gear } from '../three/ChogModel';
 import { Stage, World, webglAvailable } from '../three/Scene';
 import { ChogSprite } from '../ChogSprite';
-import { Bar, Button, ElementBadge, Modal, Panel, Pill, Spark, toast } from '../ui';
+import { Bar, Button, ElementBadge, Img, Modal, Spark, toast } from '../ui';
 import { useGame } from '@/lib/store';
 import { fmt, useLoadout, useNow, useProgress, useQuality, useReducedMotion } from '@/lib/hooks';
 import { applyTap, boostRefill, boostTurbo, boostsLeft, collectOffline, currentEnergy, passiveRate, TURBO_MS, TURBO_MULT } from '@/game/progress';
-import { BatteryCharging, Rocket } from 'lucide-react';
 import { track } from '@/lib/analytics';
 import { COMBO_WINDOW_MS, MAX_TAPS_PER_SEC, OVERCHARGE_AT, comboMultiplier } from '@/game/tap';
 import { xpForLevel } from '@/game/progression';
@@ -18,9 +17,9 @@ import { leagueFor } from '@/game/mmr';
 import { ARCHETYPES } from '@/game/chog';
 import { haptic, sfx } from '@/lib/sound';
 import { GuestBanner } from '../GuestBanner';
-import { ART, GEAR } from '@/lib/art';
-import type { Gear } from '../three/ChogModel';
-import { SEASON } from '@/game/season';
+import { art, faceOf, VARIANTS, type Variant } from '@/lib/art';
+import { CharacterFan, Donut, StoryBrowse, useVariantState } from '../showcase';
+import type { Progress } from '@/game/progress';
 
 interface Floater { id: number; x: number; y: number; text: string; crit: boolean }
 
@@ -144,126 +143,100 @@ export function HomeScreen() {
   const homeColors = useMemo<[string, string]>(() => [lo.look.bg[0], lo.look.bg[1]], [lo.look.bg]);
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-6">
       {!lo.isHolder && <GuestBanner />}
-      <div className="grid gap-3 lg:grid-cols-[1.35fr_1fr]">
-        {/* tap stage */}
-        <div ref={stageRef} className="game-surface no-select relative h-[min(62dvh,560px)] min-h-[380px] overflow-hidden rounded-[32px] border border-line shadow-[0_30px_80px_-40px_rgba(30,10,70,0.9)]">
-          {gl ? (
-            <Stage quality={quality} reducedMotion={reduced} onPointerDown={onTap} className="absolute inset-0 cursor-pointer" camera={[0, 1.35, 5.8]} target={[0, 0.72, 0]} frameWidth={3.3} frameHeight={4.3}>
-              <World backdrop="home" homeColors={homeColors} />
-              <ChogModel look={lo.look} cue={cue} ascension={lo.ascension.ring} gear={(p.gear as Gear) ?? null} />
-            </Stage>
-          ) : (
-            <div onPointerDown={onTap} className="absolute inset-0 grid cursor-pointer place-items-center" style={{ background: `radial-gradient(circle at 50% 40%, ${lo.look.bg[0]}, ${lo.look.bg[1]})` }}>
-              <motion.div key={cue.id} initial={{ scaleY: 0.86, scaleX: 1.08 }} animate={{ scaleY: 1, scaleX: 1 }} transition={{ type: 'spring', stiffness: 600, damping: 12 }}>
-                <ChogSprite look={lo.look} size={260} background={false} />
-              </motion.div>
-            </div>
-          )}
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="min-w-0 space-y-5">
+          <Spotlight />
 
-          {/* overlays */}
-          <div className="pointer-events-none absolute inset-x-3 top-3 flex items-start justify-between gap-2">
-            <div className="flex flex-col gap-1.5">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#1b1236]/45 px-3 py-1 text-xs font-semibold text-white backdrop-blur-md"><Bot size={13} strokeWidth={1.8} /> {fmt(rate)} / hour</span>
-              <span className="eyebrow rounded-full bg-[#1b1236]/45 px-3 py-1 !text-[0.6rem] !text-white/85 backdrop-blur-md">{ARCHETYPES[lo.profile.archetype].name}</span>
-            </div>
-            <div className="flex flex-col items-end gap-1.5">
-              <ElementBadge element={lo.profile.element} />
-              {comboN > 4 && (
-                <div className="rounded-full bg-[#1b1236]/50 px-3 py-1 font-display text-sm font-semibold text-gold backdrop-blur-md">
-                  x{comboMultiplier(comboN).toFixed(2)} combo
+          <section>
+            <SectionHead title="Tap arena" right={<span className="flex items-center gap-2 text-sm text-dim"><span className="size-2 rounded-full" style={{ background: league.color }} /> {league.name} · <span className="tnum">{p.mmr}</span> MMR</span>} />
+            <div ref={stageRef} className="game-surface no-select relative h-[min(64dvh,560px)] min-h-[400px] overflow-hidden rounded-[32px] ring-1 ring-line shadow-[0_40px_90px_-50px_rgba(61,0,117,0.95)]">
+              {gl ? (
+                <Stage quality={quality} reducedMotion={reduced} onPointerDown={onTap} className="absolute inset-0 cursor-pointer" camera={[0, 1.35, 5.8]} target={[0, 0.72, 0]} frameWidth={3.3} frameHeight={4.3}>
+                  <World backdrop="home" homeColors={homeColors} />
+                  <ChogModel look={lo.look} cue={cue} ascension={lo.ascension.ring} gear={(p.gear as Gear) ?? null} />
+                </Stage>
+              ) : (
+                <div onPointerDown={onTap} className="absolute inset-0 grid cursor-pointer place-items-center" style={{ background: `radial-gradient(circle at 50% 40%, ${lo.look.bg[0]}, ${lo.look.bg[1]})` }}>
+                  <motion.div key={cue.id} initial={{ scaleY: 0.86, scaleX: 1.08 }} animate={{ scaleY: 1, scaleX: 1 }} transition={{ type: 'spring', stiffness: 600, damping: 12 }}>
+                    <ChogSprite look={lo.look} size={260} background={false} />
+                  </motion.div>
                 </div>
               )}
+
+              <div className="pointer-events-none absolute inset-x-3 top-3 flex items-start justify-between gap-2">
+                <div className="flex flex-col gap-1.5">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-night/50 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-md"><Bot size={13} strokeWidth={1.8} /> {fmt(rate)} / hour</span>
+                  <span className="eyebrow rounded-full bg-night/50 px-3 py-1 !text-[0.6rem] !text-white/85 backdrop-blur-md">{ARCHETYPES[lo.profile.archetype].name}</span>
+                </div>
+                <div className="flex flex-col items-end gap-1.5">
+                  <ElementBadge element={lo.profile.element} />
+                  {comboN > 4 && (
+                    <div className="rounded-full bg-night/55 px-3 py-1 font-brand text-base text-gold backdrop-blur-md">x{comboMultiplier(comboN).toFixed(2)} combo</div>
+                  )}
+                </div>
+              </div>
+              {floaters.map((f) => (
+                <div key={f.id} className={`pointer-events-none absolute animate-float-up font-brand drop-shadow-[0_2px_0_rgba(0,0,0,0.6)] ${f.crit ? 'text-3xl text-gold' : 'text-2xl text-white'}`} style={{ left: f.x, top: f.y - 20 }}>
+                  {f.crit ? `CRIT ${f.text}` : f.text}
+                </div>
+              ))}
+              {p.taps < 3 && (
+                <div className="pointer-events-none absolute inset-x-0 bottom-36 text-center">
+                  <span className="inline-block animate-bounce rounded-full bg-mist px-5 py-2 font-display text-lg font-semibold text-royal shadow-lg">Tap your Chog</span>
+                </div>
+              )}
+              <AnimatePresence>
+                {turbo && !overcharged && (
+                  <motion.div initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} className="pointer-events-none absolute inset-x-0 top-16 text-center font-brand text-4xl text-cheek drop-shadow">Turbo ×3</motion.div>
+                )}
+                {overcharged && (
+                  <motion.div initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} className="pointer-events-none absolute inset-x-0 top-16 text-center font-brand text-4xl shimmer-text">Overcharge ×2</motion.div>
+                )}
+              </AnimatePresence>
+              <div className="pointer-events-none absolute inset-x-3 bottom-3 space-y-2 rounded-[22px] bg-night/60 p-3.5 text-white ring-1 ring-white/10 backdrop-blur-xl">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="flex items-center gap-1.5 font-semibold tnum"><Zap size={15} className="text-gold" fill="currentColor" /> {Math.floor(energy)} <span className="text-white/50">/ {lo.energy.cap}</span></span>
+                  <span className="text-xs text-white/65">+{lo.energy.regenPerSec}/s · {lo.energy.tapPower} per tap</span>
+                </div>
+                <Bar value={energy} max={lo.energy.cap} color="#ffc861" height={8} label="Energy" />
+                <div className="flex items-center gap-2 text-xs font-semibold text-white/80">
+                  <Flame size={14} className={overcharged ? 'text-cheek' : 'text-white/60'} />
+                  <Bar value={overcharged ? (overUntil - now) / OVERCHARGE_MS : chargePct} max={1} color={overcharged ? '#ff5fa2' : '#9b7fd8'} height={5} className="flex-1" label="Overcharge" />
+                  <span>{overcharged ? 'Overcharged' : 'Charge'}</span>
+                </div>
+              </div>
             </div>
-          </div>
-          {floaters.map((f) => (
-            <div key={f.id} className={`pointer-events-none absolute animate-float-up font-display drop-shadow-[0_2px_0_rgba(0,0,0,0.6)] ${f.crit ? 'text-3xl text-gold' : 'text-2xl text-white'}`} style={{ left: f.x, top: f.y - 20 }}>
-              {f.crit ? `CRIT ${f.text}` : f.text}
+            <div className="mt-3 grid grid-cols-2 gap-3">
+              <button onClick={refill} disabled={left.refill <= 0} className="surface btn-soft lift flex items-center gap-3 rounded-[22px] px-4 py-3.5 text-left disabled:opacity-45">
+                <span className="grid size-10 place-items-center rounded-2xl bg-gold/15 text-gold"><BatteryCharging size={20} strokeWidth={1.8} /></span>
+                <span><span className="block text-sm font-semibold">Full Tank</span><span className="text-xs text-dim">{left.refill}/3 today</span></span>
+              </button>
+              <button onClick={startTurbo} disabled={left.turbo <= 0 || turbo} className={`surface btn-soft lift flex items-center gap-3 rounded-[22px] px-4 py-3.5 text-left disabled:opacity-45 ${turbo ? 'ring-2 ring-cheek' : ''}`}>
+                <span className="grid size-10 place-items-center rounded-2xl bg-cheek/15 text-cheek"><Rocket size={20} strokeWidth={1.8} /></span>
+                <span><span className="block text-sm font-semibold">{turbo ? `Turbo ${Math.ceil((turboUntil - now) / 1000)}s` : 'Turbo ×3'}</span><span className="text-xs text-dim">{left.turbo}/3 today</span></span>
+              </button>
             </div>
-          ))}
-          {p.taps < 3 && (
-            <div className="pointer-events-none absolute inset-x-0 bottom-36 text-center">
-              <span className="inline-block animate-bounce rounded-full bg-white/85 px-5 py-2 font-display text-lg font-semibold text-[#2a1450] shadow-lg">Tap your Chog</span>
-            </div>
-          )}
-          <AnimatePresence>
-            {turbo && !overcharged && (
-              <motion.div initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} className="pointer-events-none absolute inset-x-0 top-16 text-center font-display text-4xl font-semibold italic text-cheek drop-shadow">
-                Turbo ×3
-              </motion.div>
-            )}
-            {overcharged && (
-              <motion.div initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} className="pointer-events-none absolute inset-x-0 top-16 text-center font-display text-4xl font-semibold italic shimmer-text">
-                Overcharge ×2
-              </motion.div>
-            )}
-          </AnimatePresence>
-          <div className="pointer-events-none absolute inset-x-3 bottom-3 space-y-2 rounded-[22px] bg-[#1b1236]/55 p-3.5 text-white backdrop-blur-xl">
-            <div className="flex items-center justify-between text-sm">
-              <span className="flex items-center gap-1.5 font-semibold tabular-nums"><Zap size={15} className="text-gold" fill="currentColor" /> {Math.floor(energy)} <span className="text-white/50">/ {lo.energy.cap}</span></span>
-              <span className="text-xs text-white/65">+{lo.energy.regenPerSec}/s · {lo.energy.tapPower} per tap</span>
-            </div>
-            <Bar value={energy} max={lo.energy.cap} color="#ffc861" height={8} label="Energy" />
-            <div className="flex items-center gap-2 text-xs font-bold text-white/80">
-              <Flame size={14} className={overcharged ? 'text-cheek' : 'text-white/60'} />
-              <Bar value={overcharged ? (overUntil - now) / OVERCHARGE_MS : chargePct} max={1} color={overcharged ? '#ff5fa2' : '#9b74f0'} height={5} className="flex-1" label="Overcharge" />
-              <span>{overcharged ? 'Overcharged' : 'Charge'}</span>
-            </div>
-          </div>
+          </section>
         </div>
 
-        {/* side column */}
-        <div className="grid content-start gap-3">
-          <Panel>
-            <div className="flex items-start justify-between">
-              <div>
-                <div className="eyebrow">Level {p.level} · {lo.ascension.name}</div>
-                <div className="mt-2 flex items-center gap-2 font-display text-[2.6rem] font-semibold leading-none tabular-nums"><Spark className="text-[0.8em]" /> {fmt(p.sparks)}</div>
-              </div>
-              <Button tone="panel" size="sm" onClick={() => setScreen('lab')}>
-                <SparkIcon size={15} /> {p.skillPoints > 0 ? `${p.skillPoints} skill pts` : 'Lab'}
-              </Button>
-            </div>
-            <Bar value={p.xp} max={xpNeed} className="mt-4" height={6} label="Experience" />
-            <div className="mt-1.5 flex justify-between text-xs text-dim"><span>Experience</span><span className="tabular-nums">{fmt(p.xp)} / {fmt(xpNeed)}</span></div>
-          </Panel>
-          <Button tone="chog" size="lg" className="w-full !min-h-16 !text-lg" onClick={() => setScreen('battle')}>
-            <Swords size={20} strokeWidth={1.8} /> Enter the arena
-          </Button>
-          <div className="grid grid-cols-2 gap-2">
-            <button onClick={refill} disabled={left.refill <= 0} className="glass btn-soft flex items-center gap-3 rounded-[22px] px-4 py-3 text-left disabled:opacity-45">
-              <BatteryCharging size={22} strokeWidth={1.8} className="text-gold" />
-              <span><span className="block text-sm font-semibold">Full Tank</span><span className="text-xs text-dim">{left.refill}/3 today</span></span>
-            </button>
-            <button onClick={startTurbo} disabled={left.turbo <= 0 || turbo} className={`glass btn-soft flex items-center gap-3 rounded-[22px] px-4 py-3 text-left disabled:opacity-45 ${turbo ? 'ring-2 ring-cheek' : ''}`}>
-              <Rocket size={22} strokeWidth={1.8} className="text-cheek" />
-              <span><span className="block text-sm font-semibold">{turbo ? `Turbo ${Math.ceil((turboUntil - now) / 1000)}s` : 'Turbo ×3'}</span><span className="text-xs text-dim">{left.turbo}/3 today</span></span>
-            </button>
-          </div>
-          <div className="grid grid-cols-3 gap-2">
-            {([['bots', 'Bots', <Bot key="b" size={19} strokeWidth={1.8} />], ['quests', 'Quests', <ScrollText key="q" size={19} strokeWidth={1.8} />]] as const).map(([id, label, icon]) => (
-              <button key={id} onClick={() => setScreen(id)} className="glass btn-soft flex flex-col items-center gap-1 rounded-[22px] py-3 text-xs font-semibold">
-                {icon} {label}
-              </button>
-            ))}
-            <button onClick={() => setScreen('ranks')} className="glass btn-soft flex flex-col items-center gap-0.5 rounded-[22px] py-3 text-xs font-semibold">
-              <span className="font-display text-base font-semibold" style={{ color: league.color }}>{league.name}</span>
-              <span className="tabular-nums text-dim">{p.mmr} MMR</span>
-            </button>
-          </div>
-          <SeasonBanner onOpen={() => setScreen('quests')} />
-        </div>
+        <aside className="space-y-5">
+          <QuickRows rate={rate} league={`${league.name} · ${p.mmr} MMR`} />
+          <StatsCard p={p} xpNeed={xpNeed} onLab={() => setScreen('lab')} />
+          <SquadCard />
+        </aside>
       </div>
 
-      <FeaturedStrip />
+      <CharacterFan onPick={() => setScreen('chogs')} />
+      <StoryBrowse />
 
       <Modal open={!!offline} onClose={() => setOffline(null)} title="Welcome back!">
         <div className="flex items-center gap-4">
           <ChogSprite look={lo.look} size={88} />
           <p className="text-dim">
             Your bots kept working for <b className="text-ink">{offline ? offline.hours.toFixed(1) : 0}h</b> and earned
-            <span className="mt-1 flex items-center gap-1 font-display text-3xl text-gold"><Spark /> {fmt(offline?.earned ?? 0)}</span>
+            <span className="mt-1 flex items-center gap-1 font-brand text-3xl text-gold"><Spark /> {fmt(offline?.earned ?? 0)}</span>
           </p>
         </div>
         <Button className="mt-4 w-full" tone="gold" onClick={() => { sfx.coin(); setOffline(null); }}>Collect</Button>
@@ -272,46 +245,153 @@ export function HomeScreen() {
   );
 }
 
-function SeasonBanner({ onOpen }: { onOpen: () => void }) {
-  const days = Math.max(0, Math.ceil((SEASON.end - Date.now()) / 86_400_000));
+function SectionHead({ title, right }: { title: string; right?: React.ReactNode }) {
   return (
-    <button onClick={onOpen} className="group relative h-40 overflow-hidden rounded-[28px] border border-line text-left">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={ART.heroRunner} alt="" className="absolute inset-0 size-full object-cover object-[30%_40%] transition duration-500 group-hover:scale-105" />
-      <div className="absolute inset-0 bg-gradient-to-r from-[#1b1236]/90 via-[#1b1236]/40 to-transparent" />
-      <div className="relative flex h-full flex-col justify-end p-5 text-white">
-        <div className="eyebrow !text-white/70">Season 1 · {days} days left</div>
-        <div className="mt-1 font-display text-2xl font-semibold italic">Spikes Rising</div>
-        <div className="mt-1 text-sm text-white/80">Speed Runner gear unlocks at pass tier 3.</div>
-      </div>
-    </button>
+    <div className="mb-3 flex items-end justify-between gap-3">
+      <h2 className="font-display text-[1.35rem] font-semibold tracking-[-0.02em]">{title}</h2>
+      {right}
+    </div>
   );
 }
 
-function FeaturedStrip() {
+/** Featured card after the dashboard reference: colour block, copy on the left, the character breaking out of the top. */
+function Spotlight() {
   const setScreen = useGame((s) => s.setScreen);
-  const items = [
-    { title: 'The Wild Chog', sub: 'Five zones. One curious creature.', img: ART.heroWild, go: 'campaign' as const, eyebrow: 'Campaign' },
-    { title: GEAR[2].name, sub: GEAR[2].tagline, img: GEAR[2].hero, go: 'lab' as const, eyebrow: 'Holder gear' },
-    { title: GEAR[1].name, sub: GEAR[1].tagline, img: GEAR[1].hero, go: 'lab' as const, eyebrow: 'Holder gear' },
-  ];
+  const reduced = useReducedMotion();
+  const { owns, equipped, equip } = useVariantState();
+  const [i, setI] = useState(() => Math.max(0, VARIANTS.findIndex((v) => v.id === 'forest')));
+  const [hold, setHold] = useState(false);
+  useEffect(() => {
+    if (hold || reduced) return;
+    const t = setInterval(() => setI((x) => (x + 1) % VARIANTS.length), 7000);
+    return () => clearInterval(t);
+  }, [hold, reduced]);
+  const v = VARIANTS[i];
+  const own = owns(v);
+  const faces = VARIANTS.filter((x) => x.emotes.length && x.id !== v.id).slice(0, 3);
   return (
-    <section>
-      <div className="eyebrow mb-3 mt-2">Featured</div>
-      <div className="scroll-x -mx-4 flex snap-x gap-3 px-4 pb-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:px-0">
-        {items.map((it) => (
-          <button key={it.title} onClick={() => setScreen(it.go)} className="group relative h-56 w-[78%] shrink-0 snap-start overflow-hidden rounded-[28px] border border-line text-left sm:w-auto">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={it.img} alt="" loading="lazy" className="absolute inset-0 size-full object-cover transition duration-500 group-hover:scale-105" />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#1b1236]/90 via-[#1b1236]/10 to-transparent" />
-            <div className="absolute inset-x-0 bottom-0 p-5 text-white">
-              <div className="eyebrow !text-white/70">{it.eyebrow}</div>
-              <div className="mt-1 font-display text-xl font-semibold">{it.title}</div>
-              <div className="text-sm text-white/75">{it.sub}</div>
+    <section className="relative pt-10 sm:pt-12" onMouseEnter={() => setHold(true)} onMouseLeave={() => setHold(false)}>
+      <AnimatePresence mode="wait">
+        <motion.div key={v.id} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.35, ease: 'easeOut' }} className="relative h-[236px] rounded-[32px] sm:h-[290px]" style={{ background: `linear-gradient(115deg, color-mix(in srgb, ${v.color} 88%, white) 0%, ${v.color} 38%, #3d0075 100%)`, color: v.ink }}>
+          <div className="noise absolute inset-0 overflow-hidden rounded-[32px]">
+            <div className="absolute -right-16 -top-24 size-80 rounded-full bg-white/10" />
+            <div className="absolute bottom-[-40%] right-[18%] size-72 rounded-full bg-black/15 blur-2xl" />
+            <div className="absolute right-0 top-0 h-full w-1/2 bg-[radial-gradient(circle_at_70%_60%,rgba(255,255,255,0.22),transparent_60%)]" />
+          </div>
+          <div className="relative flex h-full max-w-[60%] flex-col p-5 sm:max-w-[54%] sm:p-7">
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-mist px-3 py-1 text-xs font-semibold text-royal"><SparkIcon size={13} /> {own ? (equipped === v.id ? 'Equipped' : 'Owned') : 'Featured'}</span>
+              <span className="hidden rounded-full bg-black/20 px-2.5 py-1 text-[11px] font-semibold backdrop-blur sm:inline" style={{ color: v.ink }}>No. {String(v.no).padStart(2, '0')}</span>
             </div>
-          </button>
+            <h2 className="mt-3 font-display text-[1.9rem] font-bold leading-[0.98] tracking-[-0.035em] sm:text-[2.7rem]">{v.name}</h2>
+            <p className="mt-2 line-clamp-2 hidden max-w-sm text-[13px] opacity-80 sm:block">{v.blurb}</p>
+            <div className="mt-auto flex items-center gap-3">
+              <div className="hidden -space-x-2.5 sm:flex">
+                {faces.map((f) => <Img key={f.id} src={faceOf(f)} className="size-9 rounded-full object-cover ring-2" style={{ background: f.color, ['--tw-ring-color' as string]: v.color }} />)}
+              </div>
+              <button onClick={() => (own ? equip(v) : setScreen('chogs'))} className="inline-flex min-h-10 items-center gap-1.5 rounded-full bg-mist px-4 text-sm font-semibold text-royal shadow-lg hover:bg-white">
+                {own ? (equipped === v.id ? 'View Chogs' : 'Equip') : `Unlock · ${v.unlock?.track === 'holder' ? 'Holder' : 'Free'} T${v.unlock?.tier}`} <ArrowUpRight size={15} />
+              </button>
+            </div>
+          </div>
+          <Img src={art.cut(v.id)} eager className="pointer-events-none absolute bottom-0 right-[-2%] h-[122%] w-auto max-w-[62%] object-contain object-bottom drop-shadow-[0_26px_30px_rgba(0,0,0,0.45)] sm:right-[3%] sm:h-[128%]" />
+        </motion.div>
+      </AnimatePresence>
+      <div className="absolute right-6 top-3 flex gap-1.5 sm:top-4" role="tablist" aria-label="Featured Chogs">
+        {VARIANTS.map((x, k) => (
+          <button key={x.id} role="tab" aria-selected={k === i} aria-label={x.name} onClick={() => setI(k)} className={`h-1.5 rounded-full transition-all ${k === i ? 'w-6 bg-chog-3' : 'w-1.5 bg-line hover:bg-dim'}`} />
         ))}
       </div>
     </section>
+  );
+}
+
+function QuickRows({ rate, league }: { rate: number; league: string }) {
+  const setScreen = useGame((s) => s.setScreen);
+  const rows: { id: 'battle' | 'campaign' | 'quests' | 'bots'; title: string; sub: string; img: string; tint: string; icon?: React.ReactNode }[] = [
+    { id: 'battle', title: 'Ranked battle', sub: league, img: art.emote('runner', 'determined'), tint: '#ff6b4a' },
+    { id: 'campaign', title: 'Campaign', sub: 'Five zones to clear', img: art.story('forest', 4), tint: '#5edc8c' },
+    { id: 'quests', title: 'Daily quests', sub: 'Check in, combo, pass', img: art.emote('crystal', 'happy'), tint: '#d1c4e9' },
+    { id: 'bots', title: 'Bots', sub: `${fmt(rate)} Sparks / hour`, img: art.emote('cyber', 'focused'), tint: '#ff4fd8' },
+  ];
+  return (
+    <div className="space-y-2.5">
+      <SectionHead title="Jump in" />
+      {rows.map((r) => (
+        <button key={r.id} onClick={() => { sfx.click(); setScreen(r.id); }} className="surface lift group flex w-full items-center gap-3 rounded-[22px] p-2.5 pr-4 text-left">
+          <Img src={r.img} className="size-14 shrink-0 rounded-2xl object-cover" />
+          <span className="min-w-0 flex-1">
+            <span className="block truncate font-semibold">{r.title}</span>
+            <span className="block truncate text-xs" style={{ color: r.tint }}>{r.sub}</span>
+          </span>
+          <ChevronRight size={18} className="text-dim transition group-hover:translate-x-0.5 group-hover:text-ink" />
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function StatsCard({ p, xpNeed, onLab }: { p: Progress; xpNeed: number; onLab: () => void }) {
+  const L = p.ledger;
+  const sum = (pred: (k: string) => boolean) => Object.entries(L).filter(([k, v]) => pred(k) && v > 0).reduce((s, [, v]) => s + v, 0);
+  const parts = [
+    { label: 'Taps', value: sum((k) => k === 'taps'), color: '#d1c4e9' },
+    { label: 'Bots', value: sum((k) => k === 'bots'), color: '#ff5fa2' },
+    { label: 'Battles', value: sum((k) => k.startsWith('battle')), color: '#ffc861' },
+    { label: 'Rewards', value: sum((k) => ['quests', 'checkin', 'combo', 'pass', 'clanChest'].includes(k)), color: '#63f0ff' },
+  ];
+  return (
+    <div>
+      <SectionHead title="Your statistic" right={<button onClick={onLab} className="grid size-9 place-items-center rounded-full text-dim hover:bg-panel-2 hover:text-ink" aria-label="Open Chog Lab"><ArrowUpRight size={18} /></button>} />
+      <div className="surface relative overflow-hidden rounded-[30px] p-5">
+        <div className="pointer-events-none absolute -top-20 left-1/2 size-64 -translate-x-1/2 rounded-full bg-grape/40 blur-3xl" />
+        <div className="relative flex justify-center">
+          <Donut parts={parts} size={190} stroke={20}>
+            <div>
+              <div className="text-[11px] text-dim">Lifetime Sparks</div>
+              <div className="font-brand text-[2rem] leading-tight tnum">{fmt(p.lifetimeSparks)}</div>
+            </div>
+          </Donut>
+        </div>
+        <div className="relative mt-4 grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
+          {parts.map((x) => <span key={x.label} className="flex items-center gap-2 text-dim"><span className="size-2 rounded-full" style={{ background: x.color }} />{x.label}<span className="ml-auto text-ink tnum">{fmt(x.value)}</span></span>)}
+        </div>
+        <div className="relative mt-5 grid grid-cols-3 gap-2 text-center">
+          {([['Level', p.level, '#7b3fc0'], ['Wins', p.wins, '#ff5fa2'], ['Taps', p.taps, '#5a0faf']] as const).map(([l, val, c]) => (
+            <div key={l} className="flex flex-col items-center gap-1.5">
+              <span className="grid size-11 place-items-center rounded-full text-white shadow-lg" style={{ background: c }}>{l === 'Level' ? <SparkIcon size={18} /> : l === 'Wins' ? <Swords size={18} /> : <Zap size={18} />}</span>
+              <span className="text-sm font-semibold tnum">{fmt(val)}</span>
+              <span className="-mt-1 text-[11px] text-dim">{l}</span>
+            </div>
+          ))}
+        </div>
+        <div className="relative mt-4">
+          <Bar value={p.xp} max={xpNeed} height={6} color="#9b7fd8" label="Experience" />
+          <div className="mt-1.5 flex justify-between text-[11px] text-dim"><span>Level {p.level} → {p.level + 1}</span><span className="tnum">{fmt(p.xp)} / {fmt(xpNeed)} XP</span></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SquadCard() {
+  const setScreen = useGame((s) => s.setScreen);
+  const { owns, equipped } = useVariantState();
+  const n = VARIANTS.filter(owns).length;
+  return (
+    <button onClick={() => setScreen('chogs')} className="surface lift block w-full rounded-[26px] p-4 text-left">
+      <div className="flex items-center justify-between">
+        <span className="font-semibold">Your Chogs</span>
+        <span className="text-xs text-dim">{n} / {VARIANTS.length} unlocked</span>
+      </div>
+      <div className="mt-3 grid grid-cols-5 gap-2">
+        {VARIANTS.map((v: Variant) => (
+          <span key={v.id} className="relative" title={v.name}>
+            <Img src={faceOf(v)} className={`aspect-square w-full rounded-2xl object-cover ${owns(v) ? '' : 'opacity-35 grayscale'}`} style={{ background: v.color }} />
+            {equipped === v.id && <span className="absolute -right-0.5 -top-0.5 size-3 rounded-full bg-lime ring-2 ring-[var(--panel-solid)]" />}
+          </span>
+        ))}
+      </div>
+    </button>
   );
 }

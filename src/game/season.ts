@@ -20,16 +20,19 @@ export const SEASON = {
   end: Date.UTC(2026, 10, 3),
 };
 
+/** Variant gear sets on the pass: tier -> [gear id, name]. */
+export const FREE_GEAR: Record<number, [string, string]> = { 3: ['runner', 'Speed Runner'], 6: ['forest', 'Forest Ranger'], 12: ['desert', 'Desert Nomad'], 18: ['ocean', 'Ocean Diver'], 24: ['cyber', 'Cyber Ninja'] };
+export const HOLDER_GEAR: Record<number, [string, string]> = { 5: ['hoodie', 'Cozy Hoodie'], 10: ['space', 'Space Explorer'], 15: ['ice', 'Ice Guardian'], 25: ['crystal', 'Crystal Mage'] };
+
 export const PASS: PassTier[] = Array.from({ length: PASS_TIERS }, (_, i) => {
   const t = i + 1;
   const free: PassReward =
-    t === 3 ? { kind: 'cosmetic', id: 'gear-runner', name: 'Speed Runner gear' }
+    FREE_GEAR[t] ? { kind: 'cosmetic', id: `gear-${FREE_GEAR[t][0]}`, name: `${FREE_GEAR[t][1]} gear` }
     : t % 10 === 0 ? { kind: 'bot', species: t === 30 ? 'zap' : 'drip' }
     : t % 3 === 0 ? { kind: 'energy', amount: 300 }
     : { kind: 'sparks', amount: 250 + t * 40 };
   const holder: PassReward =
-    t === 5 ? { kind: 'cosmetic', id: 'gear-hoodie', name: 'Cozy Hoodie gear' }
-    : t === 10 ? { kind: 'cosmetic', id: 'gear-space', name: 'Space Explorer gear' }
+    HOLDER_GEAR[t] ? { kind: 'cosmetic', id: `gear-${HOLDER_GEAR[t][0]}`, name: `${HOLDER_GEAR[t][1]} gear` }
     : t === 30 ? { kind: 'cosmetic', id: 'frame-mythic', name: 'Season Crown Frame' }
     : t === 20 ? { kind: 'bot', species: 'cinder' }
     : t % 5 === 0 ? { kind: 'cosmetic', id: `trail-s1-${t}`, name: ['Ember Trail', 'Tide Trail', 'Moss Trail', 'Void Trail'][(t / 5 - 1) % 4] }

@@ -22,7 +22,7 @@ export function Tutorial() {
   return (
     <div className="fixed inset-0 z-[55] grid place-items-end bg-black/70 p-3 backdrop-blur-sm sm:place-items-center" role="dialog" aria-modal="true" aria-label="Tutorial">
       <AnimatePresence mode="wait">
-        <motion.div key={i} initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -20, opacity: 0 }} className="w-full max-w-md overflow-hidden rounded-[32px] border border-line bg-[#1b1236] text-white shadow-2xl">
+        <motion.div key={i} initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -20, opacity: 0 }} className="w-full max-w-md overflow-hidden rounded-[32px] border border-line bg-night text-white shadow-2xl">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={step.img} alt="" className="h-60 w-full object-cover" />
           <div className="p-6">

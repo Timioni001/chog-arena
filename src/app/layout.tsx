@@ -1,10 +1,11 @@
 import type { Metadata, Viewport } from 'next';
-import { Fraunces, Manrope } from 'next/font/google';
+import { Inter_Tight, Lilita_One, Outfit } from 'next/font/google';
 import { Providers } from '@/components/Providers';
 import './globals.css';
 
-const display = Fraunces({ subsets: ['latin'], variable: '--font-fraunces', axes: ['SOFT', 'opsz'], display: 'swap' });
-const body = Manrope({ subsets: ['latin'], variable: '--font-manrope', display: 'swap' });
+const display = Outfit({ subsets: ['latin'], variable: '--font-outfit', display: 'swap' });
+const body = Inter_Tight({ subsets: ['latin'], variable: '--font-inter-tight', display: 'swap' });
+const brand = Lilita_One({ subsets: ['latin'], weight: '400', variable: '--font-lilita', display: 'swap' });
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
@@ -19,7 +20,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#120b24',
+  themeColor: '#12061f',
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
@@ -27,7 +28,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" data-theme="dark" className={`${display.variable} ${body.variable}`} suppressHydrationWarning>
+    <html lang="en" data-theme="dark" className={`${display.variable} ${body.variable} ${brand.variable}`} suppressHydrationWarning>
       <body className="antialiased">
         <Providers>{children}</Providers>
       </body>

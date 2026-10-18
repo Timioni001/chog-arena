@@ -5,7 +5,10 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { newProgress, type Progress } from '@/game/progress';
 import type { Quality } from '@/components/three/Scene';
 
-export type Screen = 'home' | 'battle' | 'bots' | 'quests' | 'ranks' | 'lab' | 'profile' | 'campaign';
+export type Screen = 'home' | 'battle' | 'bots' | 'quests' | 'ranks' | 'lab' | 'profile' | 'campaign' | 'chogs';
+
+/** Screens where you are playing: the sidebar folds to an icon rail there and opens over the content. */
+export const PLAY_SCREENS: Screen[] = ['home', 'battle', 'campaign'];
 
 export interface Settings {
   quality: Quality | 'auto';
@@ -16,6 +19,8 @@ export interface Settings {
   theme: 'dark' | 'light';
   hideWallet: boolean;
   displayName: string;
+  /** Sidebar folded to icons on non-play screens. */
+  navCollapsed: boolean;
 }
 
 interface GameState {
@@ -30,6 +35,9 @@ interface GameState {
   ownedTokens: number[];
   tutorialDone: boolean;
   clan: { id: string; name: string; tag: string; role: 'leader' | 'member' } | null;
+  /** Gear previewed in the Lab (not saved). */
+  tryOn: string | null;
+  setTryOn: (g: string | null) => void;
   setScreen: (s: Screen) => void;
   setSettings: (s: Partial<Settings>) => void;
   setWallet: (address: string | null, tokens: number[]) => void;
@@ -46,7 +54,9 @@ export const useGame = create<GameState>()(
   persist(
     (set, get) => ({
       screen: 'home',
-      settings: { quality: 'auto', sound: true, music: false, haptics: true, reducedMotion: false, theme: 'dark', hideWallet: false, displayName: '' },
+      settings: { quality: 'auto', sound: true, music: false, haptics: true, reducedMotion: false, theme: 'dark', hideWallet: false, displayName: '', navCollapsed: false },
+      tryOn: null,
+      setTryOn: (tryOn) => set({ tryOn }),
       progress: { guest: newProgress() },
       activeKey: 'guest',
       lastKey: 'guest',

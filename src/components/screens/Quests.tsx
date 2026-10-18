@@ -20,7 +20,6 @@ const SYMBOL_ICON: Record<ComboSymbol, string> = { quill: '🦔', coin: '🪙', 
 export function QuestsScreen() {
   return (
     <div className="space-y-4">
-      <Title sub="Fresh every day at 00:00 UTC.">Quests</Title>
       <div className="grid gap-4 lg:grid-cols-2">
         <CheckIn />
         <DailyCombo />

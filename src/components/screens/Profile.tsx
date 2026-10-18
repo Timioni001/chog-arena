@@ -36,7 +36,6 @@ export function ProfileScreen() {
 
   return (
     <div className="space-y-4">
-      <Title>Profile</Title>
       <Panel>
         <div className="flex flex-wrap items-center gap-3">
           <Wallet className="text-chog-2" />

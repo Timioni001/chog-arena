@@ -96,7 +96,7 @@ export function ResultPanel() {
   return (
     <motion.div className="absolute inset-0 z-10 overflow-y-auto bg-black/70 backdrop-blur-md" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
       <div className="safe-top mx-auto flex min-h-full max-w-md flex-col px-4 pb-8 pt-4">
-        <motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 260, damping: 14 }} className={`text-center font-display text-6xl font-semibold italic ${won ? 'shimmer-text' : draw ? 'text-white' : 'text-[#ff8fa8]'}`}>
+        <motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 260, damping: 14 }} className={`text-center font-brand text-6xl ${won ? 'shimmer-text' : draw ? 'text-white' : 'text-[#ff8fa8]'}`}>
           {won ? 'Victory' : draw ? 'Draw' : 'Defeat'}
         </motion.div>
         <div className="mt-1 text-center text-sm text-white/70">

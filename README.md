@@ -8,6 +8,7 @@
 - Climb ranked seasons (Bronze → Mythic), five campaign zones, daily quests, a daily combo puzzle and a season pass.
 - Progress lives on the **token id**: sell the Chog and its level, bots and record go with it.
 - Daily boosts (Full Tank, Turbo), invites that pay energy and cosmetics, clan chests, and season $CHOG prizes claimed in-game from a merkle root.
+- Ten Chog variants from the owner's character sheets (Wild, Forest Ranger, Desert Nomad, Crystal Mage, Cyber Ninja, Ice Guardian, Ocean Diver, Speed Runner, Cozy Hoodie, Space Explorer). Each one is a 3D gear set earned on the season pass, with a profile card and a five-scene storyboard.
 - Ops built in: `/admin` dashboard (D1/D7 retention, events, Spark economy), a public flag list, name filtering, Terms and Privacy pages.
 
 ## Why the Chog matters
@@ -33,12 +34,13 @@ Production on Cloudflare Workers (OpenNext): `npm run deploy`. Every key, step b
 | Contracts (28 tests incl. fuzzing) | `cd contracts && forge test` |
 | Re-index the collection from chain | `npm run index:chogs` |
 
-### Try it as a judge or player
+### Try it
 
 1. Open the app on a phone. The tutorial shows the loop in four cards.
 2. **No wallet:** tap the demo Chog, equip a bot, play Practice or Campaign. Ranked shows exactly why it needs a Chog.
 3. **With a Chog:** Profile → Browser wallet (or WalletConnect) → your Chogs load from chain → *Sign in* (gasless SIWE) → Battle → *Find ranked match*. After the match: server-verified result, MMR change, season rank, and (if contracts are configured) *Record result on Monad*.
-4. **Chog Lab → Preview any Chog:** type any token id (1–1969) to see its 3D fighter, real trait counts, stats and cards.
+4. **Chogs:** browse the ten variants, read their storyboards, *Try in 3D*, equip the ones you own.
+5. **Chog Lab → Preview any Chog:** type any token id (1–1969) to see its 3D fighter, real trait counts, stats and cards.
 
 ### End-to-end on a mainnet fork
 
@@ -56,7 +58,7 @@ Research and verification notes: [`docs/collection-research.md`](docs/collection
 
 ## Stack
 
-Next.js 15 (App Router) on Cloudflare Workers via OpenNext · TypeScript · React Three Fiber + drei · Zustand · Tailwind 4 · Framer Motion · wagmi + viem (SIWE, Multicall3) · Upstash Redis (optional) · Foundry · Vitest · PWA.
+Next.js 15 (App Router) on Cloudflare Workers via OpenNext · TypeScript · React Three Fiber + drei · Zustand · Tailwind 4 · Framer Motion · Outfit, Inter Tight and Lilita One type · wagmi + viem (SIWE, Multicall3) · Upstash Redis (optional) · Foundry · Vitest · PWA.
 
 More: [roadmap](docs/ROADMAP.md) · [architecture](docs/architecture.md) · [economy](docs/economy.md) · [pitch & demo script](docs/pitch.md) · [assets](ASSETS.md).
 

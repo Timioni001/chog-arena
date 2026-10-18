@@ -12,7 +12,7 @@ import { useGame } from '@/lib/store';
 import { leagueFor, LEAGUES } from '@/game/mmr';
 import { SEASON } from '@/game/season';
 import { useAccount } from 'wagmi';
-import { ART } from '@/lib/art';
+import { art } from '@/lib/art';
 
 export function BattleScreen() {
   const lo = useLoadout();
@@ -41,7 +41,7 @@ export function BattleScreen() {
 
   return (
     <div className="space-y-4">
-      <Title eyebrow={`${SEASON.name} · ${daysLeft} days left`}>Battle</Title>
+      <div className="eyebrow">{SEASON.name} · {daysLeft} days left</div>
       {!lo.isHolder && <GuestBanner compact />}
 
       <div className="grid gap-3 md:grid-cols-2">
@@ -49,8 +49,8 @@ export function BattleScreen() {
         <Panel className="relative overflow-hidden !p-0">
           <div className="relative h-44">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={ART.heroSpace} alt="" className="absolute inset-0 size-full object-cover object-[50%_30%]" />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#1b1236] via-[#1b1236]/30 to-transparent" />
+            <img src={art.hero('cyber')} alt="" className="absolute inset-0 size-full object-cover object-[50%_28%]" />
+            <div className="absolute inset-0 bg-gradient-to-t from-night via-night/30 to-transparent" />
             <div className="absolute inset-x-5 bottom-4 flex items-end justify-between text-white">
               <div>
                 <div className="eyebrow flex items-center gap-1.5 !text-white/75"><Trophy size={13} /> Ranked</div>
