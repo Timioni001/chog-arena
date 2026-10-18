@@ -3,6 +3,7 @@ import { randomBytes } from 'node:crypto';
 import { kv } from './kv';
 import { ArenaError, getPlayer } from './arena';
 import { SEASON } from '@/game/season';
+import { checkName } from '@/game/moderation';
 
 export interface Clan {
   id: string;
@@ -24,8 +25,12 @@ export async function listClans() {
 }
 
 export async function createClan(tokenId: number, name: string, tag: string): Promise<Clan> {
-  const n = name.trim().slice(0, 24), t = tag.trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4);
-  if (n.length < 3 || t.length < 2) throw new ArenaError(400, 'Name needs 3+ characters and tag 2–4 letters.');
+  const t = tag.trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4);
+  const nc = checkName(name, { min: 3, max: 24 });
+  if (!nc.ok) throw new ArenaError(400, nc.reason);
+  const tc = checkName(t, { min: 2, max: 4 });
+  if (!tc.ok) throw new ArenaError(400, `Tag: ${tc.reason}`);
+  const n = nc.value;
   const rec = await getPlayer(tokenId);
   if (rec.clanId) throw new ArenaError(400, 'Leave your current clan first.');
   const clan: Clan = { id: randomBytes(6).toString('hex'), name: n, tag: t, leader: tokenId, members: [tokenId], createdAt: Date.now() };

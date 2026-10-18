@@ -7,6 +7,8 @@
 - Battle in fast 3-lane, 6-turn matches: win 2 of 3 lanes. Your Chog's real traits become seven of your twelve cards.
 - Climb ranked seasons (Bronze → Mythic), five campaign zones, daily quests, a daily combo puzzle and a season pass.
 - Progress lives on the **token id**: sell the Chog and its level, bots and record go with it.
+- Daily boosts (Full Tank, Turbo), invites that pay energy and cosmetics, clan chests, and season $CHOG prizes claimed in-game from a merkle root.
+- Ops built in: `/admin` dashboard (D1/D7 retention, events, Spark economy), a public flag list, name filtering, Terms and Privacy pages.
 
 ## Why the Chog matters
 
@@ -26,7 +28,7 @@ Production on Cloudflare Workers (OpenNext): `npm run deploy`. Every key, step b
 
 | What | Command |
 |---|---|
-| Game rules, replay, economy (22 tests, incl. every one of the 1,969 tokens building a valid deck) | `npm test` |
+| Game rules, replay, economy, prizes, moderation, boosts (33 tests, incl. every one of the 1,969 tokens building a valid deck) | `npm test` |
 | Types | `npm run lint` |
 | Contracts (28 tests incl. fuzzing) | `cd contracts && forge test` |
 | Re-index the collection from chain | `npm run index:chogs` |
@@ -56,7 +58,7 @@ Research and verification notes: [`docs/collection-research.md`](docs/collection
 
 Next.js 15 (App Router) on Cloudflare Workers via OpenNext · TypeScript · React Three Fiber + drei · Zustand · Tailwind 4 · Framer Motion · wagmi + viem (SIWE, Multicall3) · Upstash Redis (optional) · Foundry · Vitest · PWA.
 
-More: [architecture](docs/architecture.md) · [economy](docs/economy.md) · [pitch & demo script](docs/pitch.md) · [assets](ASSETS.md).
+More: [roadmap](docs/ROADMAP.md) · [architecture](docs/architecture.md) · [economy](docs/economy.md) · [pitch & demo script](docs/pitch.md) · [assets](ASSETS.md).
 
 ## Honest status
 

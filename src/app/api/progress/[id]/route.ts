@@ -4,6 +4,7 @@ import { ArenaError } from '@/server/arena';
 import { isValidTokenId } from '@/game/collection';
 import { MAX_LEVEL } from '@/game/progression';
 import type { Progress } from '@/game/progress';
+import { recordLedger } from '@/server/analytics';
 
 /** Progress is keyed by token id: whoever holds the Chog inherits everything it earned. */
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -26,6 +27,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     if (prev && prev.updatedAt > progress.updatedAt) return json({ progress: prev, stale: true }, 409);
     // Ranked numbers always come from the server record, never from the client copy.
     await kv().set(`progress:${id}`, { ...progress, history: progress.history.slice(0, 30) });
+    await recordLedger(prev?.ledger, progress.ledger).catch(() => undefined);
     return json({ ok: true });
   });
 }

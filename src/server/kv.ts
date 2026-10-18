@@ -13,6 +13,7 @@ export interface Kv {
   ztop(key: string, n: number): Promise<{ member: string; score: number }[]>;
   zrank(key: string, member: string): Promise<number | null>;
   zscore(key: string, member: string): Promise<number | null>;
+  incr(key: string, by?: number, ttlSec?: number): Promise<number>;
   smembers(key: string): Promise<string[]>;
   sadd(key: string, member: string): Promise<void>;
   srem(key: string, member: string): Promise<void>;
@@ -46,6 +47,7 @@ class MemoryKv implements Kv {
     return i < 0 ? null : i;
   }
   async zscore(key: string, member: string) { return this.z(key).get(member) ?? null; }
+  async incr(key: string, by = 1, ttlSec?: number) { const v = ((await this.get<number>(key)) ?? 0) + by; await this.set(key, v, ttlSec); return v; }
   async smembers(key: string) { return [...(this.sets.get(key) ?? [])]; }
   async sadd(key: string, member: string) { let s = this.sets.get(key); if (!s) { s = new Set(); this.sets.set(key, s); } s.add(member); }
   async srem(key: string, member: string) { this.sets.get(key)?.delete(member); }
@@ -73,6 +75,11 @@ class UpstashKv implements Kv {
   }
   async zrank(key: string, member: string) { const r = await this.cmd<number | null>('ZREVRANK', key, member); return r ?? null; }
   async zscore(key: string, member: string) { const r = await this.cmd<string | null>('ZSCORE', key, member); return r === null ? null : Number(r); }
+  async incr(key: string, by = 1, ttlSec?: number) {
+    const v = Number(await this.cmd<number>('INCRBY', key, by));
+    if (ttlSec && v === by) await this.cmd('EXPIRE', key, ttlSec);
+    return v;
+  }
   async smembers(key: string) { return this.cmd<string[]>('SMEMBERS', key); }
   async sadd(key: string, member: string) { await this.cmd('SADD', key, member); }
   async srem(key: string, member: string) { await this.cmd('SREM', key, member); }

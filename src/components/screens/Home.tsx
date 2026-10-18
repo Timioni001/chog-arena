@@ -9,7 +9,9 @@ import { ChogSprite } from '../ChogSprite';
 import { Bar, Button, ElementBadge, Modal, Panel, Pill, Spark, toast } from '../ui';
 import { useGame } from '@/lib/store';
 import { fmt, useLoadout, useNow, useProgress, useQuality, useReducedMotion } from '@/lib/hooks';
-import { applyTap, collectOffline, currentEnergy, passiveRate } from '@/game/progress';
+import { applyTap, boostRefill, boostTurbo, boostsLeft, collectOffline, currentEnergy, passiveRate, TURBO_MS, TURBO_MULT } from '@/game/progress';
+import { BatteryCharging, Rocket } from 'lucide-react';
+import { track } from '@/lib/analytics';
 import { COMBO_WINDOW_MS, MAX_TAPS_PER_SEC, OVERCHARGE_AT, comboMultiplier } from '@/game/tap';
 import { xpForLevel } from '@/game/progression';
 import { leagueFor } from '@/game/mmr';
@@ -41,6 +43,7 @@ export function HomeScreen() {
   const charge = useRef(0);
   const [chargePct, setChargePct] = useState(0);
   const [overUntil, setOverUntil] = useState(0);
+  const [turboUntil, setTurboUntil] = useState(0);
   const tapTimes = useRef<number[]>([]);
   const fid = useRef(0);
   const stageRef = useRef<HTMLDivElement>(null);
@@ -50,6 +53,16 @@ export function HomeScreen() {
   const energy = currentEnergy(p, lo.energy, now);
   const rate = passiveRate(p, lo.yieldBonus);
   const overcharged = overUntil > now;
+  const turbo = turboUntil > now;
+  const left = boostsLeft(p, now);
+  const refill = () => {
+    if (update((cur) => boostRefill(cur, lo.energy, Date.now()))) { sfx.level(); toast.good('Full tank!'); track('boost', { kind: 'refill' }); }
+    else toast.info(left.refill <= 0 ? 'No refills left today.' : 'Energy is already full.');
+  };
+  const startTurbo = () => {
+    if (update((cur) => boostTurbo(cur, Date.now()))) { setTurboUntil(Date.now() + TURBO_MS); sfx.overcharge(); track('boost', { kind: 'turbo' }); }
+    else toast.info('No Turbo left today.');
+  };
 
   // Offline earnings on arrival, then a passive tick.
   useEffect(() => {
@@ -92,7 +105,8 @@ export function HomeScreen() {
       c.n = t - c.last < COMBO_WINDOW_MS ? c.n + 1 : 0;
       c.last = t;
       const over = overUntil > t;
-      const out = applyTap(cur, lo.energy, c.n, over, Math.random(), t);
+      const boost = (over ? 2 : 1) * (turboUntil > t ? TURBO_MULT : 1);
+      const out = applyTap(cur, lo.energy, c.n, boost, Math.random(), t);
       if (!out.ok) {
         sfx.error();
         setCue((x) => ({ kind: 'hit', id: x.id + 1 }));
@@ -122,7 +136,7 @@ export function HomeScreen() {
       if (out.crit) { sfx.crit(); if (settings.haptics) haptic(25); }
       else { sfx.tap(c.n); if (settings.haptics) haptic(6); }
     },
-    [lo.energy, overUntil, settings.haptics],
+    [lo.energy, overUntil, turboUntil, settings.haptics],
   );
 
   const league = leagueFor(p.mmr);
@@ -174,6 +188,11 @@ export function HomeScreen() {
             </div>
           )}
           <AnimatePresence>
+            {turbo && !overcharged && (
+              <motion.div initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} className="pointer-events-none absolute inset-x-0 top-16 text-center font-display text-4xl font-semibold italic text-cheek drop-shadow">
+                Turbo ×3
+              </motion.div>
+            )}
             {overcharged && (
               <motion.div initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} className="pointer-events-none absolute inset-x-0 top-16 text-center font-display text-4xl font-semibold italic shimmer-text">
                 Overcharge ×2
@@ -212,6 +231,16 @@ export function HomeScreen() {
           <Button tone="chog" size="lg" className="w-full !min-h-16 !text-lg" onClick={() => setScreen('battle')}>
             <Swords size={20} strokeWidth={1.8} /> Enter the arena
           </Button>
+          <div className="grid grid-cols-2 gap-2">
+            <button onClick={refill} disabled={left.refill <= 0} className="glass btn-soft flex items-center gap-3 rounded-[22px] px-4 py-3 text-left disabled:opacity-45">
+              <BatteryCharging size={22} strokeWidth={1.8} className="text-gold" />
+              <span><span className="block text-sm font-semibold">Full Tank</span><span className="text-xs text-dim">{left.refill}/3 today</span></span>
+            </button>
+            <button onClick={startTurbo} disabled={left.turbo <= 0 || turbo} className={`glass btn-soft flex items-center gap-3 rounded-[22px] px-4 py-3 text-left disabled:opacity-45 ${turbo ? 'ring-2 ring-cheek' : ''}`}>
+              <Rocket size={22} strokeWidth={1.8} className="text-cheek" />
+              <span><span className="block text-sm font-semibold">{turbo ? `Turbo ${Math.ceil((turboUntil - now) / 1000)}s` : 'Turbo ×3'}</span><span className="text-xs text-dim">{left.turbo}/3 today</span></span>
+            </button>
+          </div>
           <div className="grid grid-cols-3 gap-2">
             {([['bots', 'Bots', <Bot key="b" size={19} strokeWidth={1.8} />], ['quests', 'Quests', <ScrollText key="q" size={19} strokeWidth={1.8} />]] as const).map(([id, label, icon]) => (
               <button key={id} onClick={() => setScreen(id)} className="glass btn-soft flex flex-col items-center gap-1 rounded-[22px] py-3 text-xs font-semibold">
