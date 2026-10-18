@@ -2,12 +2,12 @@
 
 import { OrbitControls } from '@react-three/drei';
 import { ExternalLink, RotateCcw, Sparkles } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ChogModel, type AnimCue } from '../three/ChogModel';
 import { Stage, World, webglAvailable } from '../three/Scene';
 import { ChogSprite } from '../ChogSprite';
 import { CardView } from '../CardView';
-import { Bar, Button, ElementBadge, Panel, Pill, Title, toast } from '../ui';
+import { Bar, Button, ElementBadge, Img, Panel, Pill, Title, toast } from '../ui';
 import { useLoadout, useProgress, useQuality, useReducedMotion } from '@/lib/hooks';
 import { useGame } from '@/lib/store';
 import { ARCHETYPES, profileForToken } from '@/game/chog';
@@ -16,7 +16,7 @@ import { isValidTokenId } from '@/game/collection';
 import { COLLECTION, marketLinks, traitCount } from '@/game/collection';
 import { SKILL_TREE, ASCENSIONS, type Branch } from '@/game/progression';
 import { equipGear, rankSkill, respec } from '@/game/progress';
-import { GEAR, type GearId } from '@/lib/art';
+import { art, VARIANTS } from '@/lib/art';
 import type { Gear } from '../three/ChogModel';
 import { Lock, Check } from 'lucide-react';
 import { ELEMENT_META } from '@/game/elements';
@@ -52,13 +52,15 @@ export function LabScreen() {
     setPreviewId(n);
   };
   const anims: AnimCue['kind'][] = ['tap', 'charge', 'attack', 'hit', 'win', 'levelup'];
-  const [tryOn, setTryOn] = useState<GearId | null>(null);
+  const tryOn = useGame((s) => s.tryOn);
+  const setTryOn = useGame((s) => s.setTryOn);
+  const setScreen = useGame((s) => s.setScreen);
+  useEffect(() => () => setTryOn(null), [setTryOn]);
   const gear = (tryOn ?? (preview ? null : p.gear ?? null)) as Gear;
 
   return (
     <div className="space-y-4">
-      <Title sub={ARCHETYPES[pr.archetype].tagline}>Chog Lab</Title>
-      <form className="flex flex-wrap items-center gap-2" onSubmit={(e) => { e.preventDefault(); openPreview(previewInput); }}>
+            <form className="flex flex-wrap items-center gap-2" onSubmit={(e) => { e.preventDefault(); openPreview(previewInput); }}>
         <label htmlFor="preview" className="text-sm font-bold text-dim">Preview any Chog</label>
         <input id="preview" inputMode="numeric" value={previewInput} onChange={(e) => setPreviewInput(e.target.value)} placeholder={`Token id 1–${COLLECTION.supply}`} className="min-h-10 w-40 rounded-xl border border-line bg-panel px-3" />
         <Button size="sm" tone="panel" type="submit">View</Button>
@@ -82,13 +84,13 @@ export function LabScreen() {
               <div className="font-display text-[1.7rem] font-semibold text-white drop-shadow">{pr.name}{pr.title ? ` “${pr.title}”` : ''}</div>
               <div className="flex flex-wrap gap-1.5">
                 <ElementBadge element={pr.element} />
-                <span className="rounded-full bg-[#1b1236]/45 px-2.5 py-0.5 text-xs font-semibold text-white backdrop-blur">{ARCHETYPES[pr.archetype].name}</span>
-                {pr.tier && <span className="rounded-full bg-[#1b1236]/45 px-2.5 py-0.5 text-xs font-semibold text-white backdrop-blur">{pr.tier}</span>}
+                <span className="rounded-full bg-night/50 px-2.5 py-0.5 text-xs font-semibold text-white backdrop-blur">{ARCHETYPES[pr.archetype].name}</span>
+                {pr.tier && <span className="rounded-full bg-night/50 px-2.5 py-0.5 text-xs font-semibold text-white backdrop-blur">{pr.tier}</span>}
               </div>
             </div>
             <div className="absolute inset-x-2 bottom-2 flex flex-wrap justify-center gap-1">
               {anims.map((a) => (
-                <button key={a} onClick={() => setCue((c) => ({ kind: a, id: c.id + 1 }))} className="min-h-8 rounded-full bg-[#1b1236]/50 px-3 text-xs font-semibold capitalize text-white backdrop-blur">{a}</button>
+                <button key={a} onClick={() => setCue((c) => ({ kind: a, id: c.id + 1 }))} className="min-h-8 rounded-full bg-night/50 px-3 text-xs font-semibold capitalize text-white backdrop-blur">{a}</button>
               ))}
             </div>
           </div>
@@ -149,25 +151,24 @@ export function LabScreen() {
       </div>
 
       <Panel>
-        <Title eyebrow="Wardrobe" sub="Gear sets dress your 3D Chog. Earn them on the season pass.">Gear</Title>
-        <div className="grid gap-3 sm:grid-cols-3">
-          {GEAR.map((g) => {
-            const owned = p.cosmetics.includes(`gear-${g.id}`);
-            const on = p.gear === g.id;
+        <Title eyebrow="Wardrobe" sub="Variant gear dresses your 3D Chog. Tap one to try it on here." right={<Button size="sm" tone="panel" onClick={() => setScreen('chogs')}>All Chogs</Button>}>Gear</Title>
+        <div className="scroll-x -mx-1 flex gap-3 px-1 pb-1">
+          {VARIANTS.map((v) => {
+            const owned = v.id === 'wild' || p.cosmetics.includes(`gear-${v.id}`);
+            const on = (p.gear ?? 'wild') === v.id;
+            const trying = (tryOn ?? null) === (v.id === 'wild' ? null : v.id) && tryOn !== null;
             return (
-              <div key={g.id} className="overflow-hidden rounded-[24px] border border-line bg-panel-2">
-                <div className="relative h-40">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={g.art} alt="" loading="lazy" className="absolute inset-0 size-full object-cover" />
-                  {!owned && <div className="absolute right-2 top-2 flex items-center gap-1 rounded-full bg-[#1b1236]/70 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur"><Lock size={12} /> {g.unlock.track === 'holder' ? 'Holder' : 'Free'} pass · tier {g.unlock.tier}</div>}
-                </div>
-                <div className="p-4">
-                  <div className="font-display text-lg font-semibold">{g.name}</div>
-                  <p className="text-sm text-dim">{g.tagline}</p>
-                  <div className="mt-3 flex gap-2">
-                    <Button size="sm" tone="panel" onClick={() => setTryOn(tryOn === g.id ? null : g.id)}>{tryOn === g.id ? 'Stop preview' : 'Try on'}</Button>
-                    {owned && <Button size="sm" tone={on ? 'ghost' : 'chog'} onClick={() => { update((cur) => equipGear(cur, on ? null : g.id)); setTryOn(null); }}>{on ? <><Check size={14} /> Equipped</> : 'Equip'}</Button>}
-                  </div>
+              <div key={v.id} className={`relative w-36 shrink-0 overflow-hidden rounded-[22px] ring-2 transition ${trying ? 'ring-chog-3' : on ? 'ring-lime' : 'ring-transparent'}`} style={{ background: v.color, color: v.ink }}>
+                <button onClick={() => setTryOn(v.id === 'wild' ? null : tryOn === v.id ? null : v.id)} className="block w-full text-left" aria-label={`Try on ${v.name}`}>
+                  <div className="relative h-32"><Img src={art.cut(v.id)} className="absolute bottom-0 left-1/2 h-[112%] w-auto max-w-none -translate-x-1/2 drop-shadow-[0_10px_14px_rgba(0,0,0,0.35)]" /></div>
+                  <div className="px-3 pb-1 pt-2 text-sm font-bold leading-tight">{v.name}</div>
+                </button>
+                <div className="px-3 pb-3">
+                  {owned ? (
+                    <button onClick={() => { update((cur) => equipGear(cur, v.id === 'wild' ? null : v.id)); setTryOn(null); sfx.buff(); }} className={`mt-1 flex min-h-8 w-full items-center justify-center gap-1 rounded-full text-xs font-semibold ${on ? 'bg-black/25' : 'bg-[#14051f] text-mist'}`}>{on ? <><Check size={12} /> Equipped</> : 'Equip'}</button>
+                  ) : (
+                    <div className="mt-1 flex min-h-8 items-center justify-center gap-1 rounded-full bg-black/20 text-[11px] font-semibold"><Lock size={11} /> {v.unlock?.track === 'holder' ? 'Holder' : 'Free'} T{v.unlock?.tier}</div>
+                  )}
                 </div>
               </div>
             );

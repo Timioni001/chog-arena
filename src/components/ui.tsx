@@ -8,10 +8,12 @@ import { ELEMENT_META } from '@/game/elements';
 import type { Element } from '@/game/types';
 import { sfx } from '@/lib/sound';
 
-type Tone = 'chog' | 'gold' | 'lime' | 'ghost' | 'danger' | 'cheek' | 'panel';
+type Tone = 'chog' | 'gold' | 'lime' | 'ghost' | 'danger' | 'cheek' | 'panel' | 'light' | 'dark';
 
 const TONES: Record<Tone, string> = {
-  chog: 'bg-gradient-to-b from-[#8a5cf0] to-chog text-white shadow-[0_10px_28px_-12px_rgba(109,58,214,0.9),inset_0_1px_0_rgba(255,255,255,0.25)] hover:brightness-110',
+  chog: 'bg-gradient-to-b from-chog to-grape text-white shadow-[0_12px_30px_-12px_rgba(90,15,175,0.95),inset_0_1px_0_rgba(255,255,255,0.28)] hover:brightness-110',
+  light: 'bg-mist text-royal shadow-[0_12px_30px_-14px_rgba(245,235,250,0.55)] hover:bg-white',
+  dark: 'bg-night text-mist border border-white/10 hover:bg-black',
   gold: 'bg-gradient-to-b from-[#ffd88a] to-gold text-[#3a2400] shadow-[0_10px_28px_-12px_rgba(255,200,97,0.8),inset_0_1px_0_rgba(255,255,255,0.5)] hover:brightness-105',
   lime: 'bg-gradient-to-b from-[#7cf0c2] to-lime text-[#05271a] shadow-[0_10px_28px_-12px_rgba(75,227,166,0.8),inset_0_1px_0_rgba(255,255,255,0.4)] hover:brightness-105',
   cheek: 'bg-gradient-to-b from-[#ff86b9] to-cheek text-white shadow-[0_10px_28px_-12px_rgba(255,95,162,0.9),inset_0_1px_0_rgba(255,255,255,0.3)] hover:brightness-105',
@@ -38,7 +40,7 @@ export function Button({ tone = 'chog', size = 'md', className = '', children, o
 
 export function Panel({ children, className = '', ...rest }: { children: ReactNode; className?: string } & React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div {...rest} className={`glass rounded-[28px] p-5 shadow-[0_20px_60px_-40px_rgba(20,8,48,0.8)] ${className}`}>
+    <div {...rest} className={`surface rounded-[28px] p-5 ${className}`}>
       {children}
     </div>
   );
@@ -49,7 +51,7 @@ export function Title({ children, sub, right, eyebrow }: { children: ReactNode; 
     <div className="mb-4 flex items-end justify-between gap-3">
       <div className="min-w-0">
         {eyebrow && <div className="eyebrow mb-1.5">{eyebrow}</div>}
-        <h2 className="font-display text-[1.45rem] font-semibold leading-tight sm:text-[1.7rem]">{children}</h2>
+        <h2 className="font-display text-[1.5rem] font-semibold leading-tight sm:text-[1.8rem]">{children}</h2>
         {sub && <p className="mt-1 text-sm text-dim">{sub}</p>}
       </div>
       {right}
@@ -102,7 +104,7 @@ export function Modal({ open, onClose, children, title, wide }: { open: boolean;
           <motion.div
             role="dialog"
             aria-modal="true"
-            className={`relative max-h-[88dvh] w-full overflow-y-auto rounded-[28px] border border-line bg-[#1b1236] p-6 shadow-2xl light:bg-white ${wide ? 'max-w-2xl' : 'max-w-md'}`}
+            className={`relative max-h-[88dvh] w-full overflow-y-auto rounded-[28px] border border-line bg-[var(--panel-solid)] p-6 shadow-2xl ${wide ? 'max-w-2xl' : 'max-w-md'}`}
             initial={{ y: 40, scale: 0.96 }}
             animate={{ y: 0, scale: 1 }}
             exit={{ y: 40, opacity: 0 }}
@@ -169,14 +171,14 @@ export function Toaster() {
 
 export function Tabs<T extends string>({ value, onChange, items, className = '' }: { value: T; onChange: (v: T) => void; items: { id: T; label: ReactNode }[]; className?: string }) {
   return (
-    <div role="tablist" className={`scroll-x glass flex gap-1 rounded-full p-1 ${className}`}>
+    <div role="tablist" className={`scroll-x surface flex gap-1 rounded-full p-1 ${className}`}>
       {items.map((it) => (
         <button
           key={it.id}
           role="tab"
           aria-selected={value === it.id}
           onClick={() => onChange(it.id)}
-          className={`min-h-10 shrink-0 rounded-full px-4 text-[0.82rem] font-semibold transition ${value === it.id ? 'bg-ink text-bg shadow' : 'text-dim hover:text-ink'}`}
+          className={`min-h-10 shrink-0 rounded-full px-4 text-[0.82rem] font-semibold transition ${value === it.id ? 'bg-mist text-royal shadow' : 'text-dim hover:text-ink'}`}
         >
           {it.label}
         </button>
@@ -191,4 +193,10 @@ export function Spark({ className = '' }: { className?: string }) {
       <defs><linearGradient id="spk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#ffe3a3" /><stop offset="1" stopColor="#ffb547" /></linearGradient></defs><path d="M12 2c.6 4.3 2.6 6.9 8 8-5.4 1.1-7.4 3.7-8 12-.6-8.3-2.6-10.9-8-12 5.4-1.1 7.4-3.7 8-8z" fill="url(#spk)" />
     </svg>
   );
+}
+
+/** Art image: fixed intrinsic size (no layout shift), async decode, lazy unless it is above the fold. */
+export function Img({ src, alt = '', className = '', eager, w, h, style }: { src: string; alt?: string; className?: string; eager?: boolean; w?: number; h?: number; style?: React.CSSProperties }) {
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src={src} alt={alt} width={w} height={h} loading={eager ? 'eager' : 'lazy'} decoding="async" draggable={false} className={className} style={style} />;
 }

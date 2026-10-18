@@ -79,8 +79,8 @@ export const CardView = memo(function CardView({
         )}
         <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/45 to-transparent" />
       </div>
-      <span className={`absolute left-1 top-1 grid place-items-center rounded-full bg-[#1b1236]/80 font-semibold text-cyan ring-1 ring-cyan/60 backdrop-blur ${badge}`}>{def.cost}</span>
-      <span className={`absolute right-1 top-1 grid place-items-center rounded-full font-semibold shadow ring-1 ring-black/10 ${badge} ${crit ? 'bg-gold text-[#3a2400]' : buffed ? (shown > def.power ? 'bg-lime text-[#05271a]' : 'bg-danger text-white') : 'bg-cream text-[#2a1450]'}`}>{shown}</span>
+      <span className={`absolute left-1 top-1 grid place-items-center rounded-full bg-night/80 font-semibold text-cyan ring-1 ring-cyan/60 backdrop-blur ${badge}`}>{def.cost}</span>
+      <span className={`absolute right-1 top-1 grid place-items-center rounded-full font-semibold shadow ring-1 ring-black/10 ${badge} ${crit ? 'bg-gold text-[#3a2400]' : buffed ? (shown > def.power ? 'bg-lime text-[#05271a]' : 'bg-danger text-white') : 'bg-cream text-royal'}`}>{shown}</span>
       {size !== 'xs' && (
         <span className="absolute left-1.5 top-[54%] text-[11px] drop-shadow" aria-hidden>{size === 'sm' ? el.icon : GLYPHS[def.glyph] ?? el.icon}</span>
       )}

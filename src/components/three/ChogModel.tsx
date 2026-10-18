@@ -6,13 +6,14 @@ import { Sparkles } from '@react-three/drei';
 import * as THREE from 'three';
 import type { Appearance } from '@/lib/appearance';
 import { basic, blobShadow, fur, glowMat, gloss, labelTexture } from './toon';
+import { GEAR_SUIT, GearBody, GearHead, VARIANT_GEAR, type VariantGear } from './GearSets';
 
 export type AnimKind = 'idle' | 'tap' | 'charge' | 'attack' | 'hit' | 'win' | 'levelup' | 'lose';
 export interface AnimCue {
   kind: AnimKind;
   id: number;
 }
-export type Gear = 'space' | 'hoodie' | 'runner' | null;
+export type Gear = 'space' | 'hoodie' | 'runner' | VariantGear | null;
 
 export const RenderContext = createContext<{ low: boolean; particles: boolean; reducedMotion: boolean }>({ low: false, particles: true, reducedMotion: false });
 /** @deprecated alias kept for older imports */
@@ -171,7 +172,8 @@ export function ChogModel({ look, cue, ascension = 0, scale = 1, gear = null }: 
   }, [look.skull, look.metal, look.skinShade, look.glow, furMat, low]);
   const rainbow = ['#ff6b6b', '#ffb347', '#ffe14d', '#5ee3a0', '#4ee6f0', '#7c4dff', '#ff5fd2'];
   const pawMat = gloss(look.paws, { low, roughness: 0.45 });
-  const bodyKind = gear === 'space' ? 'astro' : gear === 'hoodie' ? 'hoodie' : look.body.kind;
+  const variant = gear && (VARIANT_GEAR as string[]).includes(gear) ? (gear as VariantGear) : null;
+  const bodyKind = gear === 'space' ? 'astro' : gear === 'hoodie' ? 'hoodie' : variant ? (GEAR_SUIT[variant] ? 'shirt' : 'none') : look.body.kind;
 
   return (
     <group scale={scale}>
@@ -186,6 +188,7 @@ export function ChogModel({ look, cue, ascension = 0, scale = 1, gear = null }: 
             <sphereGeometry args={[1, 32, 24]} />
           </mesh>
           <Outfit look={look} kind={bodyKind} gear={gear} />
+          {variant && <GearBody gear={variant} />}
           {BACK_QUILLS.map((q, i) => (
             <mesh key={i} position={q.pos} quaternion={q.quat} scale={[1, 1, 0.72]} material={quillMat}>
               <coneGeometry args={[q.r, q.len, 10]} />
@@ -224,7 +227,7 @@ export function ChogModel({ look, cue, ascension = 0, scale = 1, gear = null }: 
               ))}
             </group>
             <Face look={look} eyesRef={eyes} />
-            {gear === 'runner' ? <Goggles /> : gear === 'hoodie' ? <Hood /> : gear === 'space' ? <SpaceHelmet /> : <Headwear look={look} />}
+            {variant ? <GearHead gear={variant} /> : gear === 'runner' ? <Goggles /> : gear === 'hoodie' ? <Hood /> : gear === 'space' ? <SpaceHelmet /> : <Headwear look={look} />}
           </group>
         </group>
 
@@ -245,6 +248,7 @@ function Outfit({ look, kind, gear }: { look: Appearance; kind: Appearance['body
   let { color, color2, text } = look.body;
   if (gear === 'space') { color = '#f1eef8'; color2 = '#63f0ff'; text = null; }
   if (gear === 'hoodie') { color = '#6a2fd0'; color2 = '#ff5fa2'; text = null; }
+  if (gear && gear in GEAR_SUIT) { color = GEAR_SUIT[gear as VariantGear] ?? color; text = null; }
   const mat = kind === 'armor' ? gloss(color, { low, metalness: 0.8, roughness: 0.3 }) : kind === 'astro' ? gloss(color, { low, roughness: 0.35 }) : fur(color, { low });
   const stripes = kind === 'stripes';
   return (
@@ -495,8 +499,9 @@ function Hood() {
   const { low } = useContext(RenderContext);
   return (
     <group>
-      <mesh rotation={[0, Math.PI, 0]} scale={[1.08, 1.02, 1.02]} material={fur('#6a2fd0', { low })}>
-        <sphereGeometry args={[0.82, 32, 24, Math.PI * 0.28, Math.PI * 1.44]} />
+      {/* phi 0 points down -x; a quarter turn puts the opening over the face */}
+      <mesh rotation={[0, Math.PI / 2, 0]} scale={[1.08, 1.04, 1.02]} material={fur('#6a2fd0', { low })}>
+        <sphereGeometry args={[0.84, 32, 24, Math.PI * 0.36, Math.PI * 1.28]} />
       </mesh>
       <group position={[0.42, 0.6, 0.25]} rotation={[0, 0, -0.35]} scale={0.9}>
         {[-1, 1].map((s) => (

@@ -108,7 +108,7 @@ export function MatchView() {
           <button aria-label="Send an emote" onClick={() => setEmoteOpen(!emoteOpen)} className="grid size-11 place-items-center rounded-full bg-white/10 text-white/85 backdrop-blur"><Smile size={18} /></button>
           <AnimatePresence>
             {emoteOpen && (
-              <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} className="absolute right-0 top-12 z-20 flex gap-1.5 rounded-2xl border border-white/15 bg-[#1b1236]/95 p-2 shadow-2xl backdrop-blur">
+              <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} className="absolute right-0 top-12 z-20 flex gap-1.5 rounded-2xl border border-white/15 bg-night/95 p-2 shadow-2xl backdrop-blur">
                 {EMOTES.map((e) => (
                   <button key={e.id} onClick={() => sendEmote(e.id)} className="flex w-14 flex-col items-center gap-1 rounded-xl p-1 hover:bg-white/10" aria-label={e.label}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -185,7 +185,7 @@ export function MatchView() {
           )}
         </div>
         <div className="flex items-end gap-2">
-          <div className="grid size-16 shrink-0 place-items-center rounded-full border-2 border-cyan/80 bg-[#1b1236] text-center shadow-[0_0_24px_rgba(99,240,255,0.35)]" aria-label={`${left} of ${energy} energy left`}>
+          <div className="grid size-16 shrink-0 place-items-center rounded-full border-2 border-cyan/80 bg-night text-center shadow-[0_0_24px_rgba(99,240,255,0.35)]" aria-label={`${left} of ${energy} energy left`}>
             <div>
               <Zap size={14} className="mx-auto text-[#8be9ff]" />
               <div className="font-display text-xl font-semibold leading-none">{left}</div>
@@ -273,7 +273,7 @@ function EmoteBubble({ emote, side }: { emote: { id: Emote; key: number } | null
           <div className="flex flex-col items-center rounded-3xl bg-white p-1.5 shadow-2xl">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={EMOTES.find((e) => e.id === emote.id)?.src} alt={emote.id} className="size-16 rounded-[20px] object-cover" />
-            <span className="px-1 pb-0.5 text-[11px] font-semibold text-[#2a1450]">{EMOTES.find((e) => e.id === emote.id)?.label}</span>
+            <span className="px-1 pb-0.5 text-[11px] font-semibold text-royal">{EMOTES.find((e) => e.id === emote.id)?.label}</span>
           </div>
         </motion.div>
       )}
