@@ -50,15 +50,12 @@ export function CharacterFan({ onPick }: { onPick?: (v: Variant) => void }) {
   const step = (d: number) => { sfx.click(); setActive((a) => (a + d + n) % n); };
 
   return (
-    <section className="relative overflow-hidden rounded-[36px] bg-[#0d0618] px-4 pb-0 pt-10 ring-1 ring-white/5 sm:pt-14" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
-      <div className="grid-bg pointer-events-none absolute inset-0" />
-      <div className="pointer-events-none absolute left-1/2 top-[55%] size-[38rem] -translate-x-1/2 rounded-full bg-grape/35 blur-[110px]" />
-      <Img src={art.emote('cyber', 'happy')} className="pointer-events-none absolute left-[7%] top-[18%] hidden w-16 rotate-[-10deg] animate-drift rounded-2xl opacity-80 shadow-lg md:block" />
-      <Img src={art.emote('ocean', 'happy')} className="pointer-events-none absolute right-[8%] top-[34%] hidden w-14 rotate-[8deg] animate-drift rounded-2xl opacity-80 shadow-lg [animation-delay:-3s] md:block" />
+    <section className="relative isolate overflow-hidden rounded-[36px] bg-[#0b0514] px-4 pb-0 pt-10 ring-1 ring-white/10 sm:pt-14" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
+      <FanBackdrop v={VARIANTS[active]} reduced={reduced} />
       <div className="relative mx-auto max-w-xl text-center">
-        <div className="inline-flex items-center gap-2 rounded-full bg-white/5 px-3 py-1 text-xs font-medium text-lilac ring-1 ring-white/10"><span className="size-1.5 rounded-full bg-gold" /> {VARIANTS.length} variants · earn them on the pass</div>
-        <h2 className="mt-4 font-display text-[2.4rem] font-bold leading-[1.02] tracking-[-0.035em] text-mist sm:text-[3.6rem]">Ten looks.<br />One fighter.</h2>
-        <p className="mx-auto mt-3 max-w-sm text-sm text-white/55">Every variant dresses your 3D Chog. Your NFT’s traits still decide how it fights.</p>
+        <div className="inline-flex items-center gap-2 rounded-full bg-black/30 px-3 py-1 text-xs font-medium text-lilac ring-1 ring-white/15 backdrop-blur-md"><span className="size-1.5 rounded-full bg-gold" /> {VARIANTS.length} variants · earn them on the pass</div>
+        <h2 className="mt-4 font-display text-[2.4rem] font-bold leading-[1.02] tracking-[-0.035em] text-mist drop-shadow-[0_4px_30px_rgba(0,0,0,0.6)] sm:text-[3.6rem]">Ten looks.<br />One fighter.</h2>
+        <p className="mx-auto mt-3 max-w-sm text-sm text-white/70">Every variant dresses your 3D Chog. Your NFT’s traits still decide how it fights.</p>
       </div>
 
       <div className="relative mx-auto mt-6 h-[300px] max-w-5xl sm:mt-8 sm:h-[400px]">
@@ -110,6 +107,53 @@ export function CharacterFan({ onPick }: { onPick?: (v: Variant) => void }) {
         <button onClick={() => step(1)} className="grid size-11 place-items-center rounded-full bg-mist text-royal shadow-lg" aria-label="Next"><ChevronRight size={20} /></button>
       </div>
     </section>
+  );
+}
+
+/** Store-page backdrop: the active variant's key art over a near-black base, a colour wash, a light beam, sparks. */
+const SPARKS = Array.from({ length: 28 }, (_, i) => ({ x: (i * 37.7) % 100, y: (i * 53.3) % 70, s: 1 + ((i * 7) % 3), d: (i * 0.37) % 4 }));
+const CHIPS: { id: VariantId; emote: string; pos: string; rot: number; delay: string }[] = [
+  { id: 'cyber', emote: 'happy', pos: 'left-[6%] top-[16%]', rot: -10, delay: '0s' },
+  { id: 'forest', emote: 'happy', pos: 'left-[14%] top-[44%]', rot: 6, delay: '-2s' },
+  { id: 'ocean', emote: 'happy', pos: 'right-[7%] top-[20%]', rot: 9, delay: '-4s' },
+  { id: 'crystal', emote: 'happy', pos: 'right-[15%] top-[46%]', rot: -7, delay: '-6s' },
+];
+
+function FanBackdrop({ v, reduced }: { v: Variant; reduced: boolean }) {
+  const word = v.name.split(' ').slice(-1)[0];
+  return (
+    <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden>
+      <AnimatePresence initial={false}>
+        <motion.div key={v.id} className="absolute inset-0" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.9 }}>
+          <Img src={art.hero(v.id)} className={`absolute inset-0 size-full scale-110 object-cover object-[50%_35%] opacity-60 saturate-[1.15] ${reduced ? '' : 'animate-[kenburns_14s_ease-in-out_infinite_alternate]'}`} />
+          <div className="absolute inset-0" style={{ background: `radial-gradient(60% 55% at 50% 78%, color-mix(in srgb, ${v.color} 55%, transparent), transparent 70%)` }} />
+        </motion.div>
+      </AnimatePresence>
+      {/* legibility: dark top for the headline, near-black edges, fade into the cards */}
+      <div className="absolute inset-0 bg-[radial-gradient(70%_45%_at_50%_22%,rgba(11,5,20,0.82),transparent_75%)]" />
+      <div className="absolute inset-0 bg-[linear-gradient(90deg,#0b0514_0%,rgba(11,5,20,0.55)_22%,rgba(11,5,20,0.15)_50%,rgba(11,5,20,0.55)_78%,#0b0514_100%)]" />
+      <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-[#0b0514] to-transparent" />
+      <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-[#0b0514] to-transparent" />
+      {/* light beam */}
+      <div className="absolute left-1/2 top-[-20%] h-[120%] w-[70%] -translate-x-1/2 bg-[conic-gradient(from_180deg_at_50%_0%,transparent_42%,rgba(209,196,233,0.16)_50%,transparent_58%)] mix-blend-screen" />
+      <div className="grid-bg absolute inset-0 opacity-60" />
+      {/* giant outlined name */}
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div key={word} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.5 }} className="absolute inset-x-0 top-[40%] text-center font-display text-[5.5rem] font-black uppercase leading-none tracking-[-0.04em] text-transparent sm:top-[37%] sm:text-[11rem]" style={{ WebkitTextStroke: '1.5px rgba(245,235,250,0.2)' }}>
+          {word}
+        </motion.div>
+      </AnimatePresence>
+      {SPARKS.map((p, i) => (
+        <span key={i} className="absolute rounded-full bg-white animate-[twinkle_3.2s_ease-in-out_infinite]" style={{ left: `${p.x}%`, top: `${p.y}%`, width: p.s, height: p.s, animationDelay: `-${p.d}s`, boxShadow: '0 0 8px 2px rgba(209,196,233,0.6)' }} />
+      ))}
+      {CHIPS.map((c) => (
+        <div key={c.id} className={`absolute hidden md:block ${c.pos}`} style={{ rotate: `${c.rot}deg` }}>
+          <div className="animate-drift rounded-[22px] bg-white/10 p-1.5 ring-1 ring-white/20 backdrop-blur-md shadow-[0_20px_40px_-12px_rgba(0,0,0,0.7)]" style={{ animationDelay: c.delay }}>
+            <Img src={art.emote(c.id, c.emote)} className="size-14 rounded-2xl object-cover lg:size-16" />
+          </div>
+        </div>
+      ))}
+    </div>
   );
 }
 
