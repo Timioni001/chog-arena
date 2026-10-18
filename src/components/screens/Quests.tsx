@@ -3,7 +3,11 @@
 import { Check, Copy, Gift, Lock, Users } from 'lucide-react';
 import { useState } from 'react';
 import { COMBO_SYMBOLS, COMBO_TRIES, STREAK_REWARDS, dailyQuests, dayKey, type ComboSymbol } from '@/game/daily';
-import { checkIn, claimPass, claimQuest, guessCombo } from '@/game/progress';
+import { checkIn, claimPass, claimQuest, claimReferral, guessCombo, REF_TIERS } from '@/game/progress';
+import { useQuery } from '@tanstack/react-query';
+import { api } from '@/lib/api';
+import { referralKey } from '@/lib/referral';
+import { track, track as trackEvent } from '@/lib/analytics';
 import { PASS, PASS_XP_PER_TIER, passTier, SEASON } from '@/game/season';
 import { BOT_SPECIES } from '@/game/bots';
 import { Bar, Button, Panel, Pill, Spark, Title, toast } from '../ui';
@@ -60,7 +64,7 @@ function CheckIn() {
       <Button className="mt-3 w-full" tone={done ? 'panel' : 'gold'} disabled={done} onClick={() => {
         let reward = 0;
         update((cur) => { const r = checkIn(cur, Date.now()); reward = r?.reward ?? 0; return r?.p; });
-        if (reward) { sfx.coin(); toast.good(`+${fmt(reward)} Sparks. See you tomorrow!`); }
+        if (reward) { sfx.coin(); toast.good(`+${fmt(reward)} Sparks. See you tomorrow!`); track('checkin'); }
       }}>
         <Gift size={18} /> {done ? 'Come back tomorrow' : 'Claim today'}
       </Button>
@@ -80,7 +84,7 @@ function DailyCombo() {
     setPick([]);
     if (!res) return;
     const r = res as NonNullable<ReturnType<typeof guessCombo>>;
-    if (r.solved) { sfx.win(); haptic([20, 40, 60]); toast.good('Combo cracked! Sparks added.'); }
+    if (r.solved) { sfx.win(); haptic([20, 40, 60]); toast.good('Combo cracked! Sparks added.'); track('combo_solved'); }
     else sfx.hex();
   };
   return (
@@ -147,7 +151,7 @@ function DailyQuests() {
                   <span>+{q.reward.xp} XP</span>
                 </div>
               </div>
-              <Button size="sm" tone={ready ? 'lime' : 'panel'} disabled={!ready} onClick={() => { if (update((cur) => claimQuest(cur, q.id, Date.now()))) { sfx.coin(); toast.good('Quest complete!'); } }}>
+              <Button size="sm" tone={ready ? 'lime' : 'panel'} disabled={!ready} onClick={() => { if (update((cur) => claimQuest(cur, q.id, Date.now()))) { sfx.coin(); toast.good('Quest complete!'); track('quest_claim', { kind: q.kind }); } }}>
                 {claimed ? <Check size={16} /> : 'Claim'}
               </Button>
             </div>
@@ -182,7 +186,7 @@ function SeasonPass() {
                   <button
                     key={track}
                     disabled={!reached || claimed || locked}
-                    onClick={() => { if (update((cur) => claimPass(cur, t.tier, track, lo.isHolder))) { sfx.coin(); toast.good('Reward claimed!'); } }}
+                    onClick={() => { if (update((cur) => claimPass(cur, t.tier, track, lo.isHolder))) { sfx.coin(); toast.good('Reward claimed!'); trackEvent('pass_claim', { kind: track }); } }}
                     className={`mt-1.5 flex min-h-12 w-full flex-col items-center justify-center rounded-xl px-1 text-[11px] font-bold ${track === 'holder' ? 'bg-gold/15' : 'bg-panel'} ${reached && !claimed && !locked ? 'ring-2 ring-lime' : ''} disabled:opacity-60`}
                   >
                     <span className="text-[9px] uppercase text-dim">{track === 'holder' ? 'Holder' : 'Free'}</span>
@@ -201,17 +205,40 @@ function SeasonPass() {
 
 function Referral() {
   const lo = useLoadout();
-  const link = typeof window !== 'undefined' ? `${window.location.origin}/?ref=${lo.tokenId ?? 'guest'}` : '';
+  const p = useProgress();
+  const update = useGame((s) => s.update);
+  const key = referralKey(lo.tokenId);
+  const link = typeof window !== 'undefined' ? `${window.location.origin}/?ref=${key}` : '';
+  const q = useQuery({ queryKey: ['ref', key], queryFn: () => api<{ count: number }>(`/api/referral?key=${key}`), staleTime: 60_000 });
+  const count = q.data?.count ?? 0;
   return (
     <Panel>
       <div className="flex flex-wrap items-center gap-3">
         <Users className="text-chog-2" />
         <div className="min-w-0 flex-1">
           <div className="font-semibold">Invite friends</div>
-          <p className="text-sm text-dim">Referrals pay in energy and cosmetics only. No $CHOG, no pyramids.</p>
+          <p className="text-sm text-dim">A friend counts once they finish their first match. Rewards are energy and cosmetics only: no $CHOG, no pyramids.</p>
         </div>
         <Button size="sm" tone="panel" onClick={async () => { try { await navigator.clipboard.writeText(link); toast.good('Invite link copied.'); } catch { toast.info(link); } }}><Copy size={16} /> Copy link</Button>
       </div>
+      <div className="mt-4 grid gap-2 sm:grid-cols-3">
+        {REF_TIERS.map((t) => {
+          const claimed = (p.refClaimed ?? []).includes(t.count);
+          const ready = count >= t.count && !claimed;
+          return (
+            <div key={t.count} className="flex items-center justify-between gap-2 rounded-2xl border border-line bg-panel-2 p-3">
+              <div>
+                <div className="text-sm font-semibold">{t.count} friend{t.count > 1 ? 's' : ''}</div>
+                <div className="text-xs text-dim">{t.label}</div>
+              </div>
+              <Button size="sm" tone={ready ? 'lime' : 'panel'} disabled={!ready} onClick={() => { if (update((cur) => claimReferral(cur, t.count, count))) { sfx.coin(); toast.good('Invite reward claimed!'); } }}>
+                {claimed ? <Check size={16} /> : `${Math.min(count, t.count)}/${t.count}`}
+              </Button>
+            </div>
+          );
+        })}
+      </div>
+      {lo.tokenId === null && <p className="mt-2 text-xs text-dim">Your invite link is tied to this device. Connect a Chog to tie it to your token instead.</p>}
     </Panel>
   );
 }

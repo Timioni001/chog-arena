@@ -16,6 +16,8 @@ import type { AiLevel } from '@/game/ai';
 import type { BattleResult, Fighter, LaneKind, Play } from '@/game/battle';
 import { beats } from '@/game/elements';
 import { seal, unseal } from './session';
+import { activeFlag } from './flags';
+import { checkName } from '@/game/moderation';
 
 export type Mode = 'ranked' | 'practice' | 'campaign' | 'challenge';
 export const TRANSFER_LOCK_MS = 24 * 60 * 60 * 1000;
@@ -121,6 +123,10 @@ export async function startMatch(args: { mode: Mode; tokenId: number | null; add
     }
   }
   if (mode === 'ranked' && tokenId === null) throw new ArenaError(403, 'Ranked needs a Chog. Grab one on OpenSea or Magic Eden.');
+  if (mode === 'ranked' && tokenId !== null) {
+    const flag = await activeFlag(tokenId);
+    if (flag) throw new ArenaError(403, `This Chog is flagged: ${flag.reason}. See the flag list on Ranks to appeal.`);
+  }
   await rateLimit(args.address ?? 'guest');
   const seed = newId();
   const id = newId();
@@ -243,7 +249,7 @@ export async function finishMatch(args: { matchId: string; ticket?: string; play
       weekPoints: rec.weekPoints + points,
       address: getAddress(pending.address),
       hideWallet: !!args.hideWallet,
-      displayName: typeof args.displayName === 'string' && args.displayName.trim() ? args.displayName.trim().slice(0, 20) : rec.displayName,
+      displayName: cleanName(args.displayName) ?? rec.displayName,
       updatedAt: Date.now(),
     };
     await kv().set(`player:${pending.tokenId}`, updated);
@@ -254,6 +260,12 @@ export async function finishMatch(args: { matchId: string; ticket?: string; play
 
   const ticket: ChallengeTicket = { seed: pending.seed, tokenId: pending.tokenId, name: pending.verified || pending.tokenId === null ? player.name : `${player.name} (unverified)`, score: result.score[0], won, exp: Date.now() + 7 * 24 * 3600_000 };
   return { result, mode: pending.mode, mmr, mmrDelta, rank: rank === null ? null : rank + 1, attestation, rewardsLockedUntil, elementLaneWin, challengeLink: pending.mode === 'challenge' ? null : seal(ticket) };
+}
+
+function cleanName(raw: unknown): string | null {
+  if (typeof raw !== 'string' || !raw.trim()) return null;
+  const c = checkName(raw);
+  return c.ok ? c.value : null;
 }
 
 async function indexLeaderboards(rec: PlayerRecord, locked: boolean) {
@@ -284,7 +296,9 @@ export async function leaderboard(board: string, limit = 50) {
     board.startsWith('trait:') ? `lb:trait:${board.slice(6)}:${s}` :
     null;
   if (!key) throw new ArenaError(400, 'Unknown board');
-  const top = await kv().ztop(key, Math.min(100, limit));
+  const raw = await kv().ztop(key, Math.min(100, limit) + 20);
+  const flagged = new Set((await kv().smembers('flags')).map(Number));
+  const top = raw.filter((r) => !flagged.has(Number(r.member))).slice(0, Math.min(100, limit));
   const rows = await Promise.all(
     top.map(async ({ member, score }, i) => {
       const rec = await getPlayer(Number(member));

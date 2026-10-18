@@ -49,6 +49,16 @@ openssl rand -hex 32
 
 Copy the 64-character output. You'll store it as a Cloudflare secret in step 9.
 
+## 1b. `ADMIN_TOKEN` (required for ops)
+
+Unlocks `/admin` (retention, events, Spark economy, flags), flagging Chogs, and publishing season prize proofs.
+
+```bash
+openssl rand -hex 24
+```
+
+Keep it in a password manager. It's a Worker secret (step 9), never a `NEXT_PUBLIC_*` value.
+
 ## 2. `ATTESTOR_PRIVATE_KEY` + `ATTESTOR_ADDRESS` (needed for onchain match records)
 
 A dedicated hot key the server uses to sign match results. It never holds funds.
@@ -211,6 +221,7 @@ npm run deploy
 
 ```bash
 npx wrangler secret put SESSION_SECRET            # step 1
+npx wrangler secret put ADMIN_TOKEN               # step 1b
 npx wrangler secret put UPSTASH_REDIS_REST_URL    # step 6
 npx wrangler secret put UPSTASH_REDIS_REST_TOKEN  # step 6
 npx wrangler secret put ATTESTOR_PRIVATE_KEY      # step 2 (only once contracts are deployed)
@@ -246,6 +257,31 @@ Then on a phone: open the site → Profile → connect → **Sign in** → Battl
 cast call <SEASONS> "matches(uint256,uint256)(uint32)" 1 <YOUR_TOKEN_ID> --rpc-url https://rpc.monad.xyz
 ```
 
+## 11. Running a season (ops)
+
+**During the season**
+- Dashboard: `https://YOUR_DOMAIN/admin` → paste `ADMIN_TOKEN`. Shows daily actives, new players, D1/D7 retention, key events and Spark sources vs sinks.
+- Flag a cheater (shown publicly on Ranks with the reason; blocks ranked and prize boards):
+  ```bash
+  curl -X POST https://YOUR_DOMAIN/api/admin/flags -H "authorization: Bearer $ADMIN_TOKEN" \
+    -H 'content-type: application/json' -d '{"tokenId":123,"reason":"Automated play","days":14}'
+  ```
+  Clear with the same body and `-X DELETE`, or use the form on `/admin`.
+
+**After the season ends** (`SEASON.end` in `src/game/season.ts` and the onchain `end` have passed):
+1. Make sure the prize pool sits in `ChogArenaSeasons` (shop prize share plus anything you transfer in).
+2. Build the tree from the final board and publish the proofs to the app:
+   ```bash
+   export ADMIN_TOKEN=...            # same as the Worker secret
+   export MONAD_RPC_URL=https://rpc.monad.xyz
+   npm run prizes:build -- --site https://YOUR_DOMAIN --season 1 --pool 100000 --cap 5000 --publish
+   ```
+   `--pool` is in whole $CHOG and must not exceed what's in the vault; `--cap` must match the contract's `maxClaimPerWallet`. Payouts go to whoever owns each ranked Chog at the snapshot: 15% / 10% / 7% for the top 3, 3% each for 4–10, 1% each for 11–50, 0.14% each for 51–100. Anything over a wallet's cap stays in the vault. The script writes `out/prizes-season-1.json`; keep it as the audit record.
+3. In the Safe, call the line it prints: `ChogArenaSeasons.setPrizeRoot(1, <root>, <total>)`.
+4. Players see **Claim prize** on the Ranks screen and claim from their own wallet until the claim deadline. After the deadline, the Safe can call `rollover(1)` to release unclaimed funds for the next season.
+
+Verified on a Monad mainnet fork: ranked match → board → `prizes:build --publish` → `setPrizeRoot` → `claim` with the app's proof paid 1,500 CHOG, and a second claim reverted.
+
 ## Local preview in the Workers runtime
 
 ```bash
@@ -258,6 +294,7 @@ npm run preview           # builds with OpenNext and serves on http://localhost:
 | Key | Step | Stored as |
 |---|---|---|
 | `SESSION_SECRET` | 1 | Worker secret |
+| `ADMIN_TOKEN` | 1b | Worker secret + your shell when running `prizes:build` |
 | `ATTESTOR_PRIVATE_KEY` | 2 | Worker secret |
 | `ATTESTOR_ADDRESS` | 2 | deploy env (contract constructor) |
 | deployer key | 3 | Foundry keystore `chog-deployer` |

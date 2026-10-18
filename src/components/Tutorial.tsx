@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { Button } from './ui';
 import { useGame } from '@/lib/store';
 import { ART } from '@/lib/art';
+import { track } from '@/lib/analytics';
 
 const STEPS = [
   { title: 'Meet your Chog', body: 'Hold a Chog Genesis NFT and its traits build your fighter: parts, colors, element, stats and battle cards. No Chog yet? A demo Chog is ready to go.', img: ART.story('wild', 1) },
@@ -15,7 +16,8 @@ const STEPS = [
 
 export function Tutorial() {
   const [i, setI] = useState(0);
-  const finish = useGame((s) => s.finishTutorial);
+  const done = useGame((s) => s.finishTutorial);
+  const finish = () => { track('tutorial_done', { kind: i + 1 < STEPS.length ? 'skipped' : 'completed' }); done(); };
   const step = STEPS[i];
   return (
     <div className="fixed inset-0 z-[55] grid place-items-end bg-black/70 p-3 backdrop-blur-sm sm:place-items-center" role="dialog" aria-modal="true" aria-label="Tutorial">

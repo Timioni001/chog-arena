@@ -12,6 +12,7 @@ import { Button, Pill, Spark, toast } from '../ui';
 import { fmt, useLoadout, useQuality, useReducedMotion } from '@/lib/hooks';
 import { seasonsAbi, SEASONS_ADDRESS } from '@/lib/wagmi';
 import { makeShareCard } from './shareCard';
+import { track } from '@/lib/analytics';
 import { useGame } from '@/lib/store';
 import type { Gear } from '../three/ChogModel';
 
@@ -42,6 +43,7 @@ export function ResultPanel() {
   const shareUrl = o.challengeLink ? `${window.location.origin}/?c=${encodeURIComponent(o.challengeLink)}` : null;
 
   const share = async () => {
+    track('share');
     const svg = spriteRef.current?.querySelector('svg');
     const blob = await makeShareCard({ won, draw, name: s.ctx.fighter.name, opponent: s.opponent.name, score: o.result.score[0], lanes: o.result.laneWinners, power: o.result.totalPower, mode: s.mode, svg: svg ?? null, url: shareUrl });
     const file = new File([blob], 'chog-arena-result.png', { type: 'image/png' });
@@ -63,6 +65,7 @@ export function ResultPanel() {
 
   const copyChallenge = async () => {
     if (!shareUrl) return;
+    track('challenge_copy');
     try {
       await navigator.clipboard.writeText(shareUrl);
       toast.good('Challenge link copied: same seed, same lanes. Beat my score!');

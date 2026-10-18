@@ -31,6 +31,12 @@ export const shopAbi = [
 ] as const;
 
 export const seasonsAbi = [
+  { type: 'function', name: 'claim', stateMutability: 'nonpayable', inputs: [{ name: 'seasonId', type: 'uint256' }, { name: 'amount', type: 'uint256' }, { name: 'proof', type: 'bytes32[]' }], outputs: [] },
+  { type: 'function', name: 'hasClaimed', stateMutability: 'view', inputs: [{ name: 's', type: 'uint256' }, { name: 'a', type: 'address' }], outputs: [{ type: 'bool' }] },
+  {
+    type: 'function', name: 'seasons', stateMutability: 'view', inputs: [{ name: 's', type: 'uint256' }],
+    outputs: [{ name: 'start', type: 'uint64' }, { name: 'end', type: 'uint64' }, { name: 'claimDeadline', type: 'uint64' }, { name: 'prizeRoot', type: 'bytes32' }, { name: 'prizePool', type: 'uint128' }, { name: 'claimed', type: 'uint128' }],
+  },
   {
     type: 'function', name: 'recordMatch', stateMutability: 'nonpayable',
     inputs: [

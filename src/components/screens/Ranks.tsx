@@ -13,6 +13,11 @@ import { Button, ElementBadge, Modal, Panel, Pill, Tabs, Title, toast } from '..
 import { shortAddr } from '@/lib/hooks';
 import type { Element } from '@/game/types';
 import { SEASON } from '@/game/season';
+import { SeasonPrizes } from '../SeasonPrizes';
+import { CLAN_CHEST, claimClanChest } from '@/game/progress';
+import { useGame } from '@/lib/store';
+import { useProgress } from '@/lib/hooks';
+import { sfx } from '@/lib/sound';
 
 interface Row { rank: number; tokenId: number; name: string; score: number; mmr: number; wins: number; games: number; streak: number; element: Element; archetype: string; tier: string | null; clanId: string | null; address: string | null }
 interface ClanRow { rank: number; id: string; name: string; tag: string; members: number[]; points: number; leader: number }
@@ -31,6 +36,7 @@ export function RanksScreen() {
   return (
     <div className="space-y-4">
       <Title sub={`${SEASON.name} · weekly snapshots, season-end prize root committed onchain`}>Leaderboards</Title>
+      <SeasonPrizes />
       <Tabs value={board} onChange={setBoard} items={[{ id: 'season', label: 'Season' }, { id: 'weekly', label: 'Weekly' }, { id: 'rookie', label: 'Rookies' }, { id: 'tier', label: 'By tier' }, { id: 'trait', label: 'By trait' }, { id: 'clan', label: 'Clans' }]} />
       {board === 'tier' && (
         <div className="scroll-x flex gap-2">{['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary'].map((t) => <Button key={t} size="sm" tone={tier === t ? 'chog' : 'panel'} onClick={() => setTier(t)}>{t}</Button>)}</div>
@@ -62,9 +68,56 @@ export function RanksScreen() {
           <li>Ownership is checked onchain at match start and finish. A Chog that changes hands sits out prize boards for 24h.</li>
           <li>Tap rate is capped at 15/s and offline earnings at your cap. Over-the-limit input is ignored, never punished silently.</li>
           <li>Holding more Chogs gives at most +15% total stat bonus. Matchmaking is by MMR.</li>
-          <li>Flagged accounts are listed with the reason and can appeal in Discord.</li>
+          <li>Flagged accounts are listed below with the reason, and can appeal in the Chog Discord.</li>
         </ul>
       </Panel>
+      <FlagList />
+    </div>
+  );
+}
+
+function FlagList() {
+  const q = useQuery({ queryKey: ['flags'], queryFn: () => api<{ flags: { tokenId: number; reason: string; at: number; until: number | null }[] }>('/api/flags'), staleTime: 60_000 });
+  const flags = q.data?.flags ?? [];
+  return (
+    <Panel>
+      <div className="eyebrow mb-1.5">Transparency</div>
+      <div className="mb-2 font-display text-xl font-semibold">Flagged Chogs</div>
+      {flags.length === 0 ? (
+        <p className="text-sm text-dim">No Chogs are flagged right now.</p>
+      ) : (
+        <ul className="divide-y divide-line text-sm">
+          {flags.map((f) => (
+            <li key={f.tokenId} className="flex flex-wrap items-baseline justify-between gap-2 py-2">
+              <span className="font-semibold">Token #{f.tokenId}</span>
+              <span className="min-w-0 flex-1 text-dim">{f.reason}</span>
+              <span className="text-xs text-dim">{new Date(f.at).toLocaleDateString()}{f.until ? ` → ${new Date(f.until).toLocaleDateString()}` : ' · until reviewed'}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+      <p className="mt-2 text-xs text-dim">Flagged Chogs can still play casual modes but sit out ranked and prize boards. Appeals: <a className="underline" href="https://discord.com/invite/chog" target="_blank" rel="noreferrer">Chog Discord</a>.</p>
+    </Panel>
+  );
+}
+
+function ClanChest({ points }: { points: number }) {
+  const p = useProgress();
+  const update = useGame((s) => s.update);
+  return (
+    <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+      {CLAN_CHEST.map((c) => {
+        const claimed = (p.clanChest ?? []).includes(`${SEASON.id}:${c.at}`);
+        const ready = points >= c.at && !claimed;
+        return (
+          <button key={c.at} disabled={!ready} onClick={() => { if (update((cur) => claimClanChest(cur, SEASON.id, c.at, points))) { sfx.coin(); toast.good(`Clan chest opened: +${c.sparks.toLocaleString()} Sparks${c.cosmetic ? ' and the Clan frame' : ''}!`); } }}
+            className={`rounded-2xl border p-3 text-left transition ${ready ? 'border-gold bg-gold/10' : 'border-line bg-panel-2'} disabled:cursor-default`}>
+            <div className="text-xs text-dim">{c.at.toLocaleString()} pts</div>
+            <div className="text-sm font-semibold">{claimed ? 'Opened' : ready ? 'Open chest' : `${Math.min(points, c.at).toLocaleString()} / ${c.at.toLocaleString()}`}</div>
+            <div className="text-[11px] text-dim">+{c.sparks.toLocaleString()} Sparks{c.cosmetic ? ' + frame' : ''}</div>
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -120,10 +173,11 @@ function Clans({ rows, loading }: { rows: ClanRow[]; loading: boolean }) {
         <div className="flex flex-wrap items-center gap-3">
           <Users className="text-chog-2" />
           <div className="min-w-0 flex-1">
-            {mine ? <><div className="font-semibold">[{mine.tag}] {mine.name}</div><div className="text-sm text-dim">{mine.members.length} members · {mine.points.toLocaleString()} season pts · chest milestones at 1k / 5k / 20k / 60k</div></> : <><div className="font-semibold">Clans</div><div className="text-sm text-dim">Holders create and lead clans. Members’ ranked points fill the clan chest.</div></>}
+            {mine ? <><div className="font-semibold">[{mine.tag}] {mine.name}</div><div className="text-sm text-dim">{mine.members.length} members · {mine.points.toLocaleString()} season pts</div></> : <><div className="font-semibold">Clans</div><div className="text-sm text-dim">Holders create and lead clans. Members’ ranked points fill the clan chest.</div></>}
           </div>
           {mine ? <Button size="sm" tone="ghost" onClick={() => act({ action: 'leave' })}>Leave</Button> : <Button size="sm" disabled={!lo.isHolder} onClick={() => setOpen(true)}>Create clan</Button>}
         </div>
+        {mine && <ClanChest points={mine.points} />}
       </Panel>
       <Panel className="!p-2">
         {loading ? <div className="p-6 text-center text-dim">Loading…</div> : rows.length === 0 ? <div className="p-6 text-center text-dim">No clans yet. Start the first one.</div> : (

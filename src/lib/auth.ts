@@ -6,6 +6,7 @@ import { useAccount, useSignMessage, useSwitchChain } from 'wagmi';
 import { createSiweMessage } from 'viem/siwe';
 import { monad } from 'viem/chains';
 import { api } from './api';
+import { track } from './analytics';
 
 export function useAuth() {
   const { address, chainId } = useAccount();
@@ -31,6 +32,7 @@ export function useAuth() {
     });
     const signature = await signMessageAsync({ message });
     await api('/api/auth/verify', { json: { message, signature } });
+    track('sign_in');
     await qc.invalidateQueries({ queryKey: ['me'] });
   }, [address, chainId, switchChainAsync, signMessageAsync, qc]);
 

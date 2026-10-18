@@ -13,6 +13,8 @@ import { api, ApiError } from '@/lib/api';
 import { useGame } from '@/lib/store';
 import { sfx, haptic } from '@/lib/sound';
 import { toast } from '../ui';
+import { track } from '@/lib/analytics';
+import { confirmReferral } from '@/lib/referral';
 
 export type MatchMode = 'ranked' | 'practice' | 'campaign' | 'challenge';
 
@@ -141,6 +143,7 @@ export const useMatch = create<MatchStore>((set, get) => ({
         session: { id, ticket, seed, mode, stageId: opts.stageId, ctx, opponent, opponentDesc: desc, level, lanes, state, plays: [], staged: [], phase: 'plan', hidden: new Set(), floaters: [], lastEvents: [], outcome: null, challenge, online },
       });
       sfx.reveal();
+      track('match_start', { mode });
     } catch (e) {
       toast.bad((e as Error).message);
     } finally {
@@ -295,6 +298,8 @@ async function finish() {
     if (mmrDeltaServer !== null) reward = { ...reward, mmrDelta: mmrDeltaServer };
   }
   if (won) { sfx.win(); haptic([30, 50, 30, 50, 80]); } else if (won === false) sfx.lose();
+  track('match_finish', { mode: s.mode, result: won === null ? 'draw' : won ? 'win' : 'loss' });
+  confirmReferral();
   const cur = useMatch.getState().session;
   if (!cur) return;
   useMatch.setState({

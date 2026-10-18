@@ -24,6 +24,8 @@ export function energyConfig(opts: { focus: number; holderBoost: number; skillCa
 }
 
 export function regenEnergy(current: number, cap: number, regenPerSec: number, elapsedMs: number): number {
+  // Gifts (invites, pass rewards) can push energy above the cap; regen just doesn't add more.
+  if (current >= cap) return current;
   return Math.min(cap, current + (regenPerSec * Math.max(0, elapsedMs)) / 1000);
 }
 

@@ -13,6 +13,7 @@ import { fmt, useLoadout, useProgress } from '@/lib/hooks';
 import { useGame } from '@/lib/store';
 import { botCard } from '@/game/bots';
 import { sfx } from '@/lib/sound';
+import { track } from '@/lib/analytics';
 import { CHOG_TOKEN, SHOP_ADDRESS, erc20Abi, shopAbi } from '@/lib/wagmi';
 
 const RARITY_COLOR: Record<string, string> = { common: '#a59cc9', uncommon: '#5ee36a', rare: '#2fc6ff', epic: '#c084fc', legendary: '#ffd166', mythic: '#ff7ad9' };
@@ -47,6 +48,7 @@ function Dashboard() {
     const cost = mergeCost(sel[0].level);
     if (!update((cur) => mergeBots(cur, sel[0].uid, sel[1].uid, Date.now()))) return toast.bad(`Merging needs ${fmt(cost)} Sparks.`);
     sfx.level();
+    track('bot_merge', { kind: sel[0].species });
     toast.good(`${speciesOf(sel[0]).name} reached level ${sel[0].level + 1}!`);
     setSelected([]);
   };
@@ -156,7 +158,7 @@ function SparkShop() {
           </div>
           <p className="mt-2 flex-1 text-sm text-dim">{s.blurb} Earns {s.yield}/h at Lv 1. Card: <b className="text-ink">{s.card.name}</b>.</p>
           <Button className="mt-3" tone={p.sparks >= s.price ? 'gold' : 'panel'} disabled={p.sparks < s.price} onClick={() => {
-            if (update((cur) => buyBot(cur, s.id, Date.now()))) { sfx.coin(); toast.good(`${s.name} joined your crew!`); }
+            if (update((cur) => buyBot(cur, s.id, Date.now()))) { sfx.coin(); track('bot_buy', { kind: s.id }); toast.good(`${s.name} joined your crew!`); }
           }}>
             <ShoppingBag size={16} /> <Spark /> {fmt(s.price)}
           </Button>

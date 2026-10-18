@@ -10,6 +10,7 @@ import { setSoundEnabled } from '@/lib/sound';
 import { useAuth } from '@/lib/auth';
 import type { Progress } from '@/game/progress';
 import { toast } from './ui';
+import { track } from '@/lib/analytics';
 
 function WalletSync() {
   const { address, status } = useAccount();
@@ -25,6 +26,7 @@ function WalletSync() {
       .then((r) => {
         if (cancelled) return;
         setWallet(address, r.tokens);
+        track('wallet_connected', { kind: r.tokens.length ? 'holder' : 'no_chog' });
         if (!r.tokens.length) toast.info('No Chog in this wallet yet: you can keep playing the demo.');
       })
       .catch((e: Error) => {

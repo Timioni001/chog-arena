@@ -15,6 +15,7 @@ import { newProgress } from '@/game/progress';
 import { api } from '@/lib/api';
 import { COLLECTION } from '@/game/collection';
 import { CHOG_TOKEN } from '@/lib/wagmi';
+import { checkName } from '@/game/moderation';
 
 export function ProfileScreen() {
   const { address, connector } = useAccount();
@@ -29,6 +30,8 @@ export function ProfileScreen() {
   const replace = useGame((s) => s.replaceProgress);
   const finishTutorial = useGame((s) => s.finishTutorial);
   const lo = useLoadout();
+  const nameCheck = settings.displayName.trim() ? checkName(settings.displayName) : null;
+  const nameError = nameCheck && !nameCheck.ok ? nameCheck.reason : null;
   const health = useQuery({ queryKey: ['health'], queryFn: () => api<{ store: string; attestations: boolean; collection: { indexedAt: string } }>('/api/health') });
 
   return (
@@ -90,7 +93,10 @@ export function ProfileScreen() {
           <Toggle label="Reduce motion" hint="Calmer animations, no screen shake or particles." on={settings.reducedMotion} set={(v) => setSettings({ reducedMotion: v })} />
           <Toggle label="Hide my wallet on leaderboards" on={settings.hideWallet} set={(v) => setSettings({ hideWallet: v })} />
           <Row label="Display name" hint="Shown on leaderboards instead of your Chog number.">
-            <input value={settings.displayName} maxLength={20} onChange={(e) => setSettings({ displayName: e.target.value })} className="w-full rounded-xl border border-line bg-panel-2 px-3 py-2.5 sm:w-64" placeholder={lo.profile.name} />
+            <div className="w-full sm:w-64">
+              <input value={settings.displayName} maxLength={20} onChange={(e) => setSettings({ displayName: e.target.value })} aria-invalid={!!nameError} className="w-full rounded-xl border border-line bg-panel-2 px-3 py-2.5" placeholder={lo.profile.name} />
+              {nameError && <div className="mt-1 text-xs text-danger">{nameError} Your Chog number is shown instead.</div>}
+            </div>
           </Row>
           <div className="flex flex-wrap gap-2">
             <Button size="sm" tone="panel" onClick={() => useGame.setState({ tutorialDone: false })}>Replay tutorial</Button>
@@ -104,6 +110,7 @@ export function ProfileScreen() {
         <p>Chog Arena reads the Chog Genesis collection (<a className="underline" href={`https://monadvision.com/address/${COLLECTION.contract}`} target="_blank" rel="noreferrer">{shortAddr(COLLECTION.contract)}</a>, {COLLECTION.supply} tokens) on Monad. $CHOG: <a className="underline" href={`https://monadvision.com/token/${CHOG_TOKEN}`} target="_blank" rel="noreferrer">{shortAddr(CHOG_TOKEN)}</a>.</p>
         <p>All character art is original and generated from your traits. We never use or host NFT images.</p>
         <p>Contracts are unaudited and launch with per-wallet and per-day caps.</p>
+        <p className="flex gap-3"><a className="underline" href="/terms">Terms</a><a className="underline" href="/privacy">Privacy</a></p>
         {health.data && <p className="text-xs">Server: {health.data.store} store · attestations {health.data.attestations ? 'on' : 'off'} · traits indexed {new Date(health.data.collection.indexedAt).toLocaleDateString()}</p>}
       </Panel>
     </div>

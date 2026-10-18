@@ -11,7 +11,8 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   return json({
     name: s.name,
     description: s.blurb,
-    image: `${origin}/icons/bot-${s.id}.svg`,
+    image: `${origin}/api/bots/image/${n}`,
+    external_url: origin,
     attributes: [
       { trait_type: 'Rarity', value: s.rarity },
       { trait_type: 'Element', value: s.element },

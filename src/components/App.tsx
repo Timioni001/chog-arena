@@ -21,6 +21,10 @@ import { useMatch } from './match/useMatch';
 import { useMatchCtx } from './match/useMatchCtx';
 import { Tutorial } from './Tutorial';
 import { sfx } from '@/lib/sound';
+import { track } from '@/lib/analytics';
+import { captureReferral } from '@/lib/referral';
+import { INVITEE_ENERGY } from '@/game/progress';
+import { toast } from './ui';
 
 const NAV: { id: Screen; label: string; icon: typeof HomeIcon; desktopOnly?: boolean }[] = [
   { id: 'home', label: 'Home', icon: HomeIcon },
@@ -50,6 +54,14 @@ export function App() {
   const pendingChallenge = useMatch((s) => s.pendingChallenge);
   const ctx = useMatchCtx();
   const badge = useClaimableCount();
+
+  useEffect(() => {
+    track('session_start');
+    if (captureReferral()) {
+      useGame.getState().update((cur) => ({ ...cur, energy: cur.energy + INVITEE_ENERGY }));
+      toast.good(`A friend invited you: +${INVITEE_ENERGY} energy to start.`);
+    }
+  }, []);
 
   // Friend challenge links: /?c=<ticket>. Wait a beat so a connected wallet can load its Chog first.
   useEffect(() => {

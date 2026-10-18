@@ -35,6 +35,12 @@ export interface Progress {
   pass: { season: number; xp: number; free: number[]; holder: number[] };
   history: MatchSummary[];
   cosmetics: string[];
+  /** Clan chest milestones already claimed, as "<season>:<points>". */
+  clanChest?: string[];
+  /** Daily boosts used. */
+  boosts?: { day: string; refill: number; turbo: number };
+  /** Referral reward tiers already claimed. */
+  refClaimed?: number[];
   /** Equipped gear set (cosmetic), e.g. "runner". */
   gear?: string | null;
   nextBotUid: number;
@@ -143,12 +149,12 @@ export interface TapOutcome {
 }
 
 /** One tap. `roll` is a 0..1 random number supplied by the caller (crit roll). */
-export function applyTap(p0: Progress, rules: EnergyRules, combo: number, overcharged: boolean, roll: number, now: number): TapOutcome {
+export function applyTap(p0: Progress, rules: EnergyRules, combo: number, boost: number, roll: number, now: number): TapOutcome {
   const p = touch(p0, now);
   const energy = currentEnergy(p, rules, now);
   if (energy < 1) return { p, gained: 0, crit: false, ok: false };
   const crit = roll < rules.critChance;
-  const gained = Math.round(rules.tapPower * comboMultiplier(combo) * (overcharged ? 2 : 1) * (crit ? 5 : 1));
+  const gained = Math.round(rules.tapPower * comboMultiplier(combo) * boost * (crit ? 5 : 1));
   let next: Progress = { ...p, energy: energy - 1, energyAt: now, taps: p.taps + 1, quests: bumpQuest(p.quests, 'taps', 1) };
   next = earn(next, gained, 'taps');
   return { p: next, gained, crit, ok: true };
@@ -335,6 +341,69 @@ export function claimPass(p: Progress, tier: number, track: 'free' | 'holder', i
   }
   return next;
 }
+
+export const CLAN_CHEST: { at: number; sparks: number; cosmetic?: string }[] = [
+  { at: 1_000, sparks: 1_000 },
+  { at: 5_000, sparks: 2_500 },
+  { at: 20_000, sparks: 6_000 },
+  { at: 60_000, sparks: 15_000, cosmetic: 'frame-clan' },
+];
+
+/** Claim a clan chest milestone once per season. `clanPoints` comes from the server's clan board. */
+export function claimClanChest(p: Progress, season: number, at: number, clanPoints: number): Progress | null {
+  const tier = CLAN_CHEST.find((c) => c.at === at);
+  const key = `${season}:${at}`;
+  if (!tier || clanPoints < at || (p.clanChest ?? []).includes(key)) return null;
+  const next = earn({ ...p, clanChest: [...(p.clanChest ?? []), key] }, tier.sparks, 'clanChest');
+  return tier.cosmetic ? { ...next, cosmetics: [...new Set([...next.cosmetics, tier.cosmetic])] } : next;
+}
+
+// ------------------------------------------------------------------ boosts
+
+export const BOOSTS_PER_DAY = { refill: 3, turbo: 3 } as const;
+export const TURBO_MS = 20_000;
+export const TURBO_MULT = 3;
+
+export function boostsLeft(p: Progress, now = Date.now()): { refill: number; turbo: number } {
+  const b = p.boosts && p.boosts.day === dayKey(now) ? p.boosts : { refill: 0, turbo: 0 };
+  return { refill: BOOSTS_PER_DAY.refill - b.refill, turbo: BOOSTS_PER_DAY.turbo - b.turbo };
+}
+
+/** Full Tank: refill energy to the cap. */
+export function boostRefill(p0: Progress, rules: EnergyRules, now: number): Progress | null {
+  const p = touch(p0, now);
+  const left = boostsLeft(p, now);
+  if (left.refill <= 0 || currentEnergy(p, rules, now) >= rules.cap) return null;
+  const used = p.boosts && p.boosts.day === dayKey(now) ? p.boosts : { day: dayKey(now), refill: 0, turbo: 0 };
+  return { ...p, energy: rules.cap, energyAt: now, boosts: { ...used, refill: used.refill + 1 } };
+}
+
+/** Turbo: ×3 Sparks per tap for 20 seconds. The caller tracks the end time. */
+export function boostTurbo(p0: Progress, now: number): Progress | null {
+  const p = touch(p0, now);
+  if (boostsLeft(p, now).turbo <= 0) return null;
+  const used = p.boosts && p.boosts.day === dayKey(now) ? p.boosts : { day: dayKey(now), refill: 0, turbo: 0 };
+  return { ...p, boosts: { ...used, turbo: used.turbo + 1 } };
+}
+
+// ------------------------------------------------------------------ referrals
+
+/** Referral rewards are energy and cosmetics only: never $CHOG. */
+export const REF_TIERS: { count: number; energy: number; cosmetic?: string; label: string }[] = [
+  { count: 1, energy: 500, label: '+500 energy' },
+  { count: 3, energy: 1_000, cosmetic: 'frame-friend', label: '+1,000 energy & Friend frame' },
+  { count: 10, energy: 2_500, cosmetic: 'trail-crew', label: '+2,500 energy & Crew trail' },
+];
+
+export function claimReferral(p: Progress, count: number, verified: number): Progress | null {
+  const tier = REF_TIERS.find((t) => t.count === count);
+  if (!tier || verified < count || (p.refClaimed ?? []).includes(count)) return null;
+  const cosmetics = tier.cosmetic ? [...new Set([...p.cosmetics, tier.cosmetic])] : p.cosmetics;
+  return { ...p, energy: p.energy + tier.energy, cosmetics, refClaimed: [...(p.refClaimed ?? []), count] };
+}
+
+/** Welcome gift for someone who arrived through an invite link. */
+export const INVITEE_ENERGY = 300;
 
 export function equipGear(p: Progress, gear: string | null): Progress | null {
   if (gear !== null && !p.cosmetics.includes(`gear-${gear}`)) return null;
