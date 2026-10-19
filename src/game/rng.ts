@@ -55,8 +55,3 @@ export function createRng(seed: string | [number, number, number, number]): Rng 
     state: () => [a >>> 0, b >>> 0, c >>> 0, d >>> 0],
   };
 }
-
-/** Stable 0..1 value for a key, used for deterministic trait mappings. */
-export function stableUnit(key: string): number {
-  return hashString(key)[0] / 4294967296;
-}

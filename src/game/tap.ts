@@ -38,8 +38,3 @@ export function offlineEarnings(perHour: number, elapsedMs: number, capHours: nu
   const hours = Math.min(capHours, Math.max(0, elapsedMs) / 3_600_000);
   return Math.floor(perHour * hours);
 }
-
-/** Server-side sanity check for a batch of taps reported by a client. */
-export function plausibleTaps(taps: number, windowMs: number): boolean {
-  return taps >= 0 && taps <= Math.ceil((windowMs / 1000) * MAX_TAPS_PER_SEC) + 5;
-}

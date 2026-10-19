@@ -2,7 +2,6 @@ import { createConfig, http, fallback } from 'wagmi';
 import { monad } from 'viem/chains';
 import { injected, walletConnect } from 'wagmi/connectors';
 
-export const CHOG_NFT = (process.env.NEXT_PUBLIC_CHOG_NFT_ADDRESS || '0xc96d31F8626c6D03Fae5dCD3d61e3FB9F4a73763') as `0x${string}`;
 export const CHOG_TOKEN = (process.env.NEXT_PUBLIC_CHOG_TOKEN_ADDRESS || '0x350035555E10d9AfAF1566AaebfCeD5BA6C27777') as `0x${string}`;
 export const SHOP_ADDRESS = (process.env.NEXT_PUBLIC_SHOP_ADDRESS || '') as `0x${string}` | '';
 export const SEASONS_ADDRESS = (process.env.NEXT_PUBLIC_SEASONS_ADDRESS || '') as `0x${string}` | '';

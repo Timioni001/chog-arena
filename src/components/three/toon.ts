@@ -88,26 +88,6 @@ export function labelTexture(text: string, fg: string, bg: string | null = null,
   return tex;
 }
 
-export function stripeTexture(a: string, b: string): THREE.CanvasTexture {
-  const key = `stripe:${a}:${b}`;
-  const hit = labelCache.get(key);
-  if (hit) return hit;
-  const c = document.createElement('canvas');
-  c.width = 64;
-  c.height = 64;
-  const ctx = c.getContext('2d')!;
-  for (let i = 0; i < 8; i++) {
-    ctx.fillStyle = i % 2 ? a : b;
-    ctx.fillRect(0, i * 8, 64, 8);
-  }
-  const tex = new THREE.CanvasTexture(c);
-  tex.colorSpace = THREE.SRGBColorSpace;
-  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-  tex.repeat.set(1, 2);
-  labelCache.set(key, tex);
-  return tex;
-}
-
 /**
  * Plush "velvet" material for fur and fabric: a physical material with sheen, matching the soft
  * toy look of the character sheets. Falls back to Lambert on low quality.

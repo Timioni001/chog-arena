@@ -62,10 +62,6 @@ export function botCard(bot: OwnedBot): CardDef {
   return { ...s.card, id: `bot-${s.id}-${bot.level}`, power: s.card.power + bonus, element: s.element, source: 'bot', origin: `Bot: ${s.name} Lv${bot.level}` };
 }
 
-export interface SlotRules {
-  slots: number;
-}
-
 /** Guests get 1 slot, holders 2, Rare-and-above holders 3. */
 export function botSlots(holder: boolean, tier: string | null): number {
   if (!holder) return 1;
