@@ -127,6 +127,40 @@ img { image-rendering: auto; }
 }
 [data-theme='light'] .surface { box-shadow: 0 1px 0 #fff inset, 0 24px 50px -34px rgba(73, 34, 91, 0.35); }
 
+/* Sidebar: deep glass with a gradient hairline and a soft inner glow. */
+.sidebar-shell {
+  background:
+    radial-gradient(120% 60% at 50% 0%, rgba(90, 15, 175, 0.28), transparent 60%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0) 30%),
+    #160a28;
+  box-shadow: inset 0 0 0 1px rgba(209, 196, 233, 0.09), inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 30px 70px -40px rgba(0, 0, 0, 0.9);
+}
+[data-theme='light'] .sidebar-shell { background: #fff; box-shadow: inset 0 0 0 1px var(--line), 0 24px 50px -34px rgba(73, 34, 91, 0.35); }
+.nav-scroll {
+  scrollbar-width: none;
+  mask-image: linear-gradient(180deg, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%);
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%);
+}
+.nav-scroll::-webkit-scrollbar { display: none; }
+.nav-on {
+  background: linear-gradient(100deg, rgba(123, 63, 192, 0.55), rgba(90, 15, 175, 0.25));
+  box-shadow: inset 0 0 0 1px rgba(209, 196, 233, 0.18), 0 8px 24px -10px rgba(123, 63, 192, 0.8);
+}
+.nav-on::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 30%, rgba(255, 255, 255, 0.14) 50%, transparent 70%);
+  transform: translateX(-100%);
+  animation: sheen 3.6s ease-in-out infinite;
+}
+.play-orb {
+  background: radial-gradient(circle at 30% 25%, #9b7fd8, #5a0faf 60%, #3d0075);
+  box-shadow: 0 10px 24px -8px rgba(90, 15, 175, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+.play-orb:hover { transform: translateY(-2px); box-shadow: 0 14px 30px -8px rgba(123, 63, 192, 1), inset 0 1px 0 rgba(255, 255, 255, 0.3); }
+
 /* Cream "paper" surface (browse grid). */
 .paper {
   background: #f5ebfa;
@@ -203,6 +237,14 @@ img { image-rendering: auto; }
 @keyframes drift {
   0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
   50% { transform: translate3d(0, -14px, 0) rotate(4deg); }
+}
+@keyframes pagerfill {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+@keyframes sheen {
+  0%, 60% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }
 @keyframes kenburns {
   0% { transform: scale(1.1) translate3d(0, 0, 0); }
