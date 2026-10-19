@@ -180,6 +180,26 @@ cast call <SEASONS> "owner()(address)" --rpc-url $MONAD_RPC_URL     # must print
 cast call <SEASONS> "attestor()(address)" --rpc-url $MONAD_RPC_URL  # must print ATTESTOR_ADDRESS
 ```
 
+## 7b. Premium pass and MON prize pool (`ChogPass`)
+
+`ChogPass` sells the Premium season pass in MON and holds the season's MON prize pool. By default 50% of every pass goes to the pool and 50% to your treasury, and anyone can add MON to the pool with **Sponsor the pool**. It deploys on its own, so the contracts from step 7 don't change.
+
+```bash
+cd contracts
+export OWNER_MULTISIG=0xYourSafe TREASURY_ADDRESS=0xYourTreasury
+export PASS_PRICE_WEI=$(cast to-wei 5)                  # 5 MON per pass
+export PASS_END=$(date -u -d '2026-11-03 00:00' +%s)    # same end as SEASON.end in src/game/season.ts
+export PASS_CLAIM_DEADLINE=$(date -u -d '2026-12-03 00:00' +%s)
+forge script script/DeployPass.s.sol --rpc-url $MONAD_RPC_URL --account chog-deployer --sender $DEPLOYER --broadcast
+forge verify-contract <PASS> src/ChogPass.sol:ChogPass --chain 143 --verifier sourcify --verifier-url https://sourcify-api-monad.blockvision.org
+```
+
+Then in the Safe: `acceptOwnership()` on `ChogPass`. Set `NEXT_PUBLIC_PASS_ADDRESS=<PASS>` (step 9). Optional: change the pool share with `setPrizeBps` (max 9000 = 90%) or the price with `setSeason`.
+
+- The treasury share accrues in the contract; anyone can call `withdrawTreasury()` and it only ever pays `TREASURY_ADDRESS`.
+- Chog holders get the Premium track free; the pass is for everyone else (and holders who want to back the pool can sponsor).
+- Premium only unlocks cosmetics and Sparks. It never changes ranked strength.
+
 ## 8. WalletConnect project id (optional, recommended for mobile)
 
 1. <https://cloud.reown.com> → sign in → **Create project** (type: AppKit / WalletKit is not needed).
@@ -206,10 +226,13 @@ NEXT_PUBLIC_CHOG_TOKEN_ADDRESS=0x350035555E10d9AfAF1566AaebfCeD5BA6C27777
 NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=your_reown_project_id
 NEXT_PUBLIC_SEASONS_ADDRESS=0x...from_step_7
 NEXT_PUBLIC_SHOP_ADDRESS=0x...from_step_7
+NEXT_PUBLIC_PASS_ADDRESS=0x...from_step_7b
 ENV
 ```
 
-Leave the two contract lines empty until step 7 is done. The app hides the shop and "Record result on Monad" while they're empty.
+Leave the contract lines empty until steps 7 and 7b are done. The app hides the shop and "Record result on Monad" while they're empty, and the prize pool shows "Opens with the season".
+
+**Building on the Cloudflare dashboard instead of WSL?** `NEXT_PUBLIC_*` values are baked in at build time, so add them under Workers → chog-arena → Settings → Build → **Variables and secrets** (build variables, not runtime ones), then redeploy.
 
 **First deploy** (creates the Worker named `chog-arena`):
 
@@ -279,6 +302,12 @@ cast call <SEASONS> "matches(uint256,uint256)(uint32)" 1 <YOUR_TOKEN_ID> --rpc-u
    `--pool` is in whole $CHOG and must not exceed what's in the vault; `--cap` must match the contract's `maxClaimPerWallet`. Payouts go to whoever owns each ranked Chog at the snapshot: 15% / 10% / 7% for the top 3, 3% each for 4–10, 1% each for 11–50, 0.14% each for 51–100. Anything over a wallet's cap stays in the vault. The script writes `out/prizes-season-1.json`; keep it as the audit record.
 3. In the Safe, call the line it prints: `ChogArenaSeasons.setPrizeRoot(1, <root>, <total>)`.
 4. Players see **Claim prize** on the Ranks screen and claim from their own wallet until the claim deadline. After the deadline, the Safe can call `rollover(1)` to release unclaimed funds for the next season.
+5. MON pool (from `ChogPass`): read the pool with `cast call <PASS> "poolOf(uint256)(uint256)" 1 --rpc-url $MONAD_RPC_URL`, then
+   ```bash
+   npm run prizes:build -- --site https://YOUR_DOMAIN --season 1 --asset mon --pool <MON, whole units> --publish
+   ```
+   and in the Safe call the printed `ChogPass.setPrizeRoot(1, <root>)`. Players claim MON from the same Ranks card. After the claim deadline, `rollover(1, 2)` moves anything unclaimed into season 2's pool.
+6. Before the next season: `setSeason(2, price, end, claimDeadline)` on `ChogPass` and `createSeason` on `ChogArenaSeasons`, and bump `SEASON` in `src/game/season.ts`.
 
 Verified on a Monad mainnet fork: ranked match → board → `prizes:build --publish` → `setPrizeRoot` → `claim` with the app's proof paid 1,500 CHOG, and a second claim reverted.
 
@@ -303,6 +332,7 @@ npm run preview           # builds with OpenNext and serves on http://localhost:
 | `NEXT_PUBLIC_MONAD_RPC_URL` | 5 | `.env.production.local` |
 | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | 6 | Worker secrets |
 | `NEXT_PUBLIC_SEASONS_ADDRESS`, `NEXT_PUBLIC_SHOP_ADDRESS` | 7 | `.env.production.local` |
+| `NEXT_PUBLIC_PASS_ADDRESS` | 7b | `.env.production.local` (or Cloudflare build variables) |
 | `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` | 8 | `.env.production.local` |
 | `NEXT_PUBLIC_SITE_URL` | 9 | `.env.production.local` |
 | `NEXT_PUBLIC_CHOG_NFT_ADDRESS`, `NEXT_PUBLIC_CHOG_TOKEN_ADDRESS` | prefilled | `.env.production.local` |

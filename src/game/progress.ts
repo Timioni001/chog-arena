@@ -326,8 +326,9 @@ export function guessCombo(p0: Progress, guess: ComboSymbol[], now: number): { p
   return { p: next, marks, solved };
 }
 
-export function claimPass(p: Progress, tier: number, track: 'free' | 'holder', isHolder: boolean): Progress | null {
-  if (track === 'holder' && !isHolder) return null;
+/** The 'holder' track is shown as Premium: a Chog unlocks it, or the season's Premium Pass does. */
+export function claimPass(p: Progress, tier: number, track: 'free' | 'holder', premium: boolean): Progress | null {
+  if (track === 'holder' && !premium) return null;
   const reached = passTier(p.pass.xp).tier;
   if (tier < 1 || tier > reached) return null;
   if (p.pass[track].includes(tier)) return null;
