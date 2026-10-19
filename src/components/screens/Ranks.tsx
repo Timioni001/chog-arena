@@ -14,6 +14,7 @@ import { shortAddr } from '@/lib/hooks';
 import type { Element } from '@/game/types';
 import { SEASON } from '@/game/season';
 import { SeasonPrizes } from '../SeasonPrizes';
+import { PrizePoolCard } from '../PrizePool';
 import { CLAN_CHEST, claimClanChest } from '@/game/progress';
 import { useGame } from '@/lib/store';
 import { useProgress } from '@/lib/hooks';
@@ -36,6 +37,7 @@ export function RanksScreen() {
   return (
     <div className="space-y-4">
       <Title sub={`${SEASON.name} · weekly snapshots, season-end prize root committed onchain`}>Leaderboards</Title>
+      <PrizePoolCard full />
       <SeasonPrizes />
       <Tabs value={board} onChange={setBoard} items={[{ id: 'season', label: 'Season' }, { id: 'weekly', label: 'Weekly' }, { id: 'rookie', label: 'Rookies' }, { id: 'tier', label: 'By tier' }, { id: 'trait', label: 'By trait' }, { id: 'clan', label: 'Clans' }]} />
       {board === 'tier' && (

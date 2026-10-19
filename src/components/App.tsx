@@ -28,6 +28,7 @@ import { INVITEE_ENERGY, currentEnergy } from '@/game/progress';
 import { passTier, PASS_TIERS, SEASON } from '@/game/season';
 import { art, VARIANTS } from '@/lib/art';
 import { toast } from './ui';
+import { PassDialogs, usePremium } from './PrizePool';
 
 type NavItem = { id: Screen; label: string; icon: typeof HomeIcon; mobile?: boolean; group: 'play' | 'you' };
 const NAV: NavItem[] = [
@@ -120,13 +121,9 @@ export function App() {
       {/* desktop sidebar: a fixed-width slot, with the panel itself free to float wider over play screens */}
       <div className={`relative z-40 hidden shrink-0 transition-[width] duration-300 ease-out lg:block ${playing || collapsedPref ? 'w-[96px]' : 'w-[272px]'}`}>
         <div className="sticky top-0 h-dvh p-3">
-          <motion.aside
-            layout
-            transition={{ type: 'spring', stiffness: 380, damping: 36 }}
-            className={`surface noise relative z-40 flex h-full flex-col overflow-hidden rounded-[30px] ${railOnly ? 'w-[72px]' : 'w-[248px]'} ${playing && peek ? 'shadow-[0_30px_90px_-20px_rgba(0,0,0,0.85)]' : ''}`}
-          >
+          <aside className={`sidebar-shell relative z-40 flex h-full flex-col overflow-hidden rounded-[30px] transition-[width,box-shadow] duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] ${railOnly ? 'w-[72px]' : 'w-[248px]'} ${playing && peek ? 'shadow-[0_30px_90px_-20px_rgba(0,0,0,0.85)]' : ''}`}>
             <SidebarBody screen={screen} go={go} compact={railOnly} onToggle={toggle} />
-          </motion.aside>
+          </aside>
         </div>
       </div>
       <AnimatePresence>
@@ -140,7 +137,7 @@ export function App() {
         {drawer && (
           <>
             <motion.button aria-label="Close menu" className="fixed inset-0 z-50 bg-night/60 backdrop-blur-sm lg:hidden" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setDrawer(false)} />
-            <motion.aside className="surface safe-top fixed inset-y-2 left-2 z-50 flex w-[min(84vw,300px)] flex-col overflow-hidden rounded-[28px] lg:hidden" initial={{ x: '-110%' }} animate={{ x: 0 }} exit={{ x: '-110%' }} transition={{ type: 'spring', stiffness: 380, damping: 38 }}>
+            <motion.aside className="sidebar-shell safe-top fixed inset-y-2 left-2 z-50 flex w-[min(84vw,300px)] flex-col overflow-hidden rounded-[28px] lg:hidden" initial={{ x: '-110%' }} animate={{ x: 0 }} exit={{ x: '-110%' }} transition={{ type: 'spring', stiffness: 380, damping: 38 }}>
               <SidebarBody screen={screen} go={go} compact={false} onToggle={() => setDrawer(false)} mobile />
             </motion.aside>
           </>
@@ -168,6 +165,7 @@ export function App() {
         <MobileNav screen={screen} go={go} />
       </div>
 
+      <PassDialogs />
       <AnimatePresence>{matchActive && <MatchView />}</AnimatePresence>
       {!tutorialDone && <Tutorial />}
     </div>
@@ -179,6 +177,7 @@ function SidebarBody({ screen, go, compact, onToggle, mobile }: { screen: Screen
   const lo = useLoadout();
   const badge = useClaimableCount();
   const { tier } = passTier(p.pass.xp);
+  const { premium } = usePremium();
   const item = (n: NavItem) => {
     const on = screen === n.id || (n.id === 'battle' && screen === 'campaign');
     return (
@@ -187,10 +186,10 @@ function SidebarBody({ screen, go, compact, onToggle, mobile }: { screen: Screen
         onClick={() => go(n.id)}
         aria-current={on ? 'page' : undefined}
         title={compact ? n.label : undefined}
-        className={`group relative flex min-h-12 w-full items-center gap-3 rounded-2xl text-[0.94rem] font-medium transition-colors ${compact ? 'justify-center px-0' : 'px-3.5'} ${on ? 'text-ink' : 'text-dim hover:bg-panel-2 hover:text-ink'}`}
+        className={`group relative flex min-h-11 w-full shrink-0 items-center gap-3 rounded-2xl text-[0.93rem] font-medium transition-colors ${compact ? 'justify-center px-0' : 'px-3.5'} ${on ? 'text-ink' : 'text-dim hover:bg-white/[0.05] hover:text-ink'}`}
       >
-        {on && <motion.span layoutId={mobile ? 'nav-on-m' : 'nav-on'} className="absolute inset-0 rounded-2xl bg-gradient-to-r from-grape/70 to-chog/30 ring-1 ring-chog-2/30" transition={{ type: 'spring', stiffness: 420, damping: 34 }} />}
-        {on && !compact && <span className="absolute -left-3 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-chog-3" />}
+        {on && <motion.span layoutId={mobile ? 'nav-on-m' : 'nav-on'} className="nav-on absolute inset-0 overflow-hidden rounded-2xl" transition={{ type: 'spring', stiffness: 420, damping: 34 }} />}
+        {on && <span className={`absolute top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-full bg-mist shadow-[0_0_12px_2px_rgba(209,196,233,0.8)] ${compact ? 'left-0' : 'left-1'}`} />}
         <n.icon size={20} strokeWidth={on ? 2.2 : 1.8} className={`relative shrink-0 ${on ? 'text-mist drop-shadow-[0_0_10px_rgba(209,196,233,0.7)]' : ''}`} />
         {!compact && <span className="relative truncate">{n.label}</span>}
         {n.id === 'quests' && badge > 0 && (compact
@@ -200,42 +199,47 @@ function SidebarBody({ screen, go, compact, onToggle, mobile }: { screen: Screen
     );
   };
   return (
-    <div className={`thin-scroll flex h-full flex-col overflow-y-auto overflow-x-hidden ${compact ? 'items-center px-2 py-4' : 'p-4'}`}>
-      <div className={`mb-6 flex items-center ${compact ? 'flex-col gap-3' : 'gap-3'}`}>
+    <div className="relative flex h-full min-h-0 flex-col">
+      <div className="pointer-events-none absolute -top-16 left-1/2 size-48 -translate-x-1/2 rounded-full bg-grape/45 blur-3xl" />
+      <div className={`relative flex shrink-0 items-center ${compact ? 'flex-col gap-2 px-2 pb-3 pt-4' : 'gap-3 p-4 pb-3'}`}>
         <button onClick={() => go('home')} className="flex min-w-0 items-center gap-3 text-left" aria-label="Chog Arena home">
-          <span className="relative grid size-11 shrink-0 place-items-center overflow-hidden rounded-2xl bg-gradient-to-br from-chog to-royal ring-1 ring-white/15">
+          <span className="relative grid size-11 shrink-0 place-items-center overflow-hidden rounded-2xl bg-gradient-to-br from-chog to-royal shadow-[0_8px_24px_-8px_rgba(123,63,192,0.9)] ring-1 ring-white/20">
             <Img src={art.emote('wild', 'happy')} eager className="size-full object-cover" w={44} h={44} />
           </span>
           {!compact && <span className="font-brand text-[1.45rem] leading-none text-mist">Chog<br /><span className="text-chog-2">Arena</span></span>}
         </button>
-        <button onClick={onToggle} className={`grid size-9 shrink-0 place-items-center rounded-xl text-dim hover:bg-panel-2 hover:text-ink ${compact ? '' : 'ml-auto'}`} aria-label={mobile ? 'Close menu' : compact ? 'Expand sidebar' : 'Collapse sidebar'}>
+        <button onClick={onToggle} className={`grid size-9 shrink-0 place-items-center rounded-xl text-dim ring-1 ring-white/5 hover:bg-white/[0.06] hover:text-ink ${compact ? '' : 'ml-auto'}`} aria-label={mobile ? 'Close menu' : compact ? 'Expand sidebar' : 'Collapse sidebar'}>
           {mobile ? <X size={18} /> : compact ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
         </button>
       </div>
 
-      {!compact && <div className="eyebrow mb-2 px-3.5 !text-[0.6rem]">Play</div>}
-      <nav className={`flex w-full flex-col gap-1 ${compact ? 'items-center' : ''}`} aria-label="Main">{NAV.filter((n) => n.group === 'play').map(item)}</nav>
-      {compact ? <div className="my-3 h-px w-8 bg-line" /> : <div className="eyebrow mb-2 mt-6 px-3.5 !text-[0.6rem]">You</div>}
-      <nav className="flex w-full flex-col gap-1" aria-label="Account">{NAV.filter((n) => n.group === 'you').map(item)}</nav>
+      {/* only the nav scrolls; the footer below never covers it */}
+      <div className={`nav-scroll relative min-h-0 flex-1 overflow-y-auto overflow-x-hidden ${compact ? 'px-2' : 'px-3'}`}>
+        <div className="py-2">
+          {!compact && <div className="eyebrow mb-1.5 px-3.5 !text-[0.58rem]">Play</div>}
+          <nav className="flex w-full flex-col gap-1" aria-label="Main">{NAV.filter((n) => n.group === 'play').map(item)}</nav>
+          {compact ? <div className="mx-auto my-3 h-px w-8 bg-line" /> : <div className="eyebrow mb-1.5 mt-5 px-3.5 !text-[0.58rem]">You</div>}
+          <nav className="flex w-full flex-col gap-1" aria-label="Account">{NAV.filter((n) => n.group === 'you').map(item)}</nav>
+        </div>
+      </div>
 
-      {!compact && (
-        <button onClick={() => go('quests')} className="lift relative mt-6 overflow-hidden rounded-[22px] bg-gradient-to-br from-mauve via-plum to-royal p-4 pr-24 text-left ring-1 ring-white/10">
-          <div className="eyebrow !text-[0.58rem] !text-lilac/80">Season pass</div>
-          <div className="mt-1 font-display text-lg font-semibold leading-tight text-mist">Tier {tier}<span className="text-lilac/60">/{PASS_TIERS}</span></div>
-          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/15"><div className="h-full rounded-full bg-gradient-to-r from-chog-3 to-cheek" style={{ width: `${(tier / PASS_TIERS) * 100}%` }} /></div>
-          <Img src={art.cut('forest')} className="pointer-events-none absolute -bottom-3 -right-3 h-[118%] w-auto drop-shadow-[0_10px_20px_rgba(0,0,0,0.45)]" />
-        </button>
-      )}
-
-      <div className={`mt-auto w-full pt-4 ${compact ? 'flex flex-col items-center gap-2' : ''}`}>
+      <div className={`relative shrink-0 border-t border-white/[0.06] ${compact ? 'flex flex-col items-center gap-2 px-2 pb-4 pt-3' : 'space-y-2.5 p-3'}`}>
+        {!compact && (
+          <button onClick={() => go('quests')} className="group relative block w-full overflow-hidden rounded-[20px] bg-gradient-to-br from-mauve via-plum to-royal p-3.5 pr-20 text-left ring-1 ring-white/10 [@media(max-height:740px)]:hidden">
+            <div className="flex items-center gap-1.5"><span className="eyebrow !text-[0.56rem] !text-lilac/80">Season pass</span>{premium && <span className="rounded-full bg-gold px-1.5 py-px text-[8px] font-bold uppercase tracking-wider text-[#3a2400]">Premium</span>}</div>
+            <div className="mt-0.5 font-display text-base font-semibold leading-tight text-mist">Tier {tier}<span className="text-lilac/60">/{PASS_TIERS}</span></div>
+            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/15"><div className="h-full rounded-full bg-gradient-to-r from-chog-3 to-cheek" style={{ width: `${(tier / PASS_TIERS) * 100}%` }} /></div>
+            <Img src={art.cut('forest')} className="pointer-events-none absolute -bottom-2 -right-2 h-[112%] w-auto drop-shadow-[0_10px_20px_rgba(0,0,0,0.45)] transition duration-300 group-hover:-translate-y-1 group-hover:rotate-3" />
+          </button>
+        )}
         {compact ? (
           <>
-            <button onClick={() => go('battle')} className="grid size-12 place-items-center rounded-2xl border border-dashed border-chog-2/50 text-chog-3 hover:bg-panel-2" aria-label="Play a match" title="Play"><Swords size={19} /></button>
-            <button onClick={() => go('lab')} aria-label="Your Chog" title={lo.profile.name} className="rounded-2xl ring-1 ring-line"><ChogSprite look={lo.look} size={44} /></button>
+            <button onClick={() => go('battle')} className="play-orb grid size-12 place-items-center rounded-2xl text-white" aria-label="Play a match" title="Play"><Swords size={19} /></button>
+            <button onClick={() => go('lab')} aria-label="Your Chog" title={lo.profile.name} className="rounded-2xl ring-1 ring-line transition hover:ring-chog-2"><ChogSprite look={lo.look} size={44} /></button>
           </>
         ) : (
-          <button onClick={() => go('lab')} className="flex w-full items-center gap-3 rounded-2xl border border-line bg-panel-2 p-2.5 text-left hover:bg-[color-mix(in_srgb,var(--ink)_9%,transparent)]">
-            <ChogSprite look={lo.look} size={42} />
+          <button onClick={() => go('lab')} className="flex w-full items-center gap-3 rounded-2xl border border-white/[0.07] bg-white/[0.04] p-2.5 text-left transition hover:bg-white/[0.07]">
+            <ChogSprite look={lo.look} size={40} />
             <span className="min-w-0">
               <span className="block truncate text-sm font-semibold">{lo.profile.name}</span>
               <span className="block text-xs text-dim">Level {p.level} · {lo.isHolder ? lo.profile.tier : 'Demo Chog'}</span>
