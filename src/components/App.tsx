@@ -28,6 +28,7 @@ import { INVITEE_ENERGY, currentEnergy } from '@/game/progress';
 import { passTier, PASS_TIERS, SEASON } from '@/game/season';
 import { art, VARIANTS } from '@/lib/art';
 import { toast } from './ui';
+import { PassDialogs, usePremium } from './PrizePool';
 
 type NavItem = { id: Screen; label: string; icon: typeof HomeIcon; mobile?: boolean; group: 'play' | 'you' };
 const NAV: NavItem[] = [
@@ -164,6 +165,7 @@ export function App() {
         <MobileNav screen={screen} go={go} />
       </div>
 
+      <PassDialogs />
       <AnimatePresence>{matchActive && <MatchView />}</AnimatePresence>
       {!tutorialDone && <Tutorial />}
     </div>
@@ -175,6 +177,7 @@ function SidebarBody({ screen, go, compact, onToggle, mobile }: { screen: Screen
   const lo = useLoadout();
   const badge = useClaimableCount();
   const { tier } = passTier(p.pass.xp);
+  const { premium } = usePremium();
   const item = (n: NavItem) => {
     const on = screen === n.id || (n.id === 'battle' && screen === 'campaign');
     return (
@@ -223,7 +226,7 @@ function SidebarBody({ screen, go, compact, onToggle, mobile }: { screen: Screen
       <div className={`relative shrink-0 border-t border-white/[0.06] ${compact ? 'flex flex-col items-center gap-2 px-2 pb-4 pt-3' : 'space-y-2.5 p-3'}`}>
         {!compact && (
           <button onClick={() => go('quests')} className="group relative block w-full overflow-hidden rounded-[20px] bg-gradient-to-br from-mauve via-plum to-royal p-3.5 pr-20 text-left ring-1 ring-white/10 [@media(max-height:740px)]:hidden">
-            <div className="eyebrow !text-[0.56rem] !text-lilac/80">Season pass</div>
+            <div className="flex items-center gap-1.5"><span className="eyebrow !text-[0.56rem] !text-lilac/80">Season pass</span>{premium && <span className="rounded-full bg-gold px-1.5 py-px text-[8px] font-bold uppercase tracking-wider text-[#3a2400]">Premium</span>}</div>
             <div className="mt-0.5 font-display text-base font-semibold leading-tight text-mist">Tier {tier}<span className="text-lilac/60">/{PASS_TIERS}</span></div>
             <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/15"><div className="h-full rounded-full bg-gradient-to-r from-chog-3 to-cheek" style={{ width: `${(tier / PASS_TIERS) * 100}%` }} /></div>
             <Img src={art.cut('forest')} className="pointer-events-none absolute -bottom-2 -right-2 h-[112%] w-auto drop-shadow-[0_10px_20px_rgba(0,0,0,0.45)] transition duration-300 group-hover:-translate-y-1 group-hover:rotate-3" />

@@ -5,6 +5,7 @@
 | `ChogArenaSeasons` | Seasons, weekly ranking roots, EIP-712 attested match records per **token id**, merkle prize claims in $CHOG from a pre-funded vault. No owner withdrawal; unclaimed prizes only roll over. |
 | `ChogShop` | Spend $CHOG on items. Splits each purchase into burn / prize vault / treasury in the same tx (holds no balance). Per-wallet daily cap, slippage guard, supply and per-wallet limits. |
 | `ChogBots` | ERC-1155 bots and cosmetics; minted by the shop; ids can be soulbound. |
+| `ChogPass` | Premium season pass sold in MON. A share of each sale (default 50%) plus sponsor top-ups form the season's MON prize pool, paid to the board by merkle claims; the rest accrues to the treasury (pull withdrawal). Rollover moves unclaimed MON to a later season. Deployed separately with `script/DeployPass.s.sol`. |
 
 All are `Ownable2Step` + `Pausable`. **Unaudited.**
 

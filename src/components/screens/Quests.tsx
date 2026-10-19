@@ -14,6 +14,7 @@ import { Bar, Button, Panel, Pill, Spark, Title, toast } from '../ui';
 import { fmt, useLoadout, useNow, useProgress } from '@/lib/hooks';
 import { useGame } from '@/lib/store';
 import { sfx, haptic } from '@/lib/sound';
+import { PremiumPassBanner, usePassModal, usePremium } from '../PrizePool';
 
 const SYMBOL_ICON: Record<ComboSymbol, string> = { quill: '🦔', coin: '🪙', bolt: '⚡', leaf: '🍃', drop: '💧', flame: '🔥', star: '⭐', moon: '🌙', gem: '💎' };
 
@@ -25,6 +26,7 @@ export function QuestsScreen() {
         <DailyCombo />
       </div>
       <DailyQuests />
+      <PremiumPassBanner />
       <SeasonPass />
       <Referral />
     </div>
@@ -163,8 +165,9 @@ function DailyQuests() {
 
 function SeasonPass() {
   const p = useProgress();
-  const lo = useLoadout();
   const update = useGame((s) => s.update);
+  const { premium } = usePremium();
+  const showPass = usePassModal((s) => s.show);
   const { tier, into } = passTier(p.pass.xp);
   const rewardText = (r: (typeof PASS)[number]['free']) =>
     r.kind === 'sparks' ? <span className="flex items-center justify-center gap-0.5"><Spark />{fmt(r.amount)}</span> : r.kind === 'energy' ? `⚡${r.amount}` : r.kind === 'bot' ? `🤖 ${BOT_SPECIES.find((b) => b.id === r.species)?.name}` : `✨ ${r.name}`;
@@ -180,15 +183,15 @@ function SeasonPass() {
               <div className="font-display text-sm">Tier {t.tier}</div>
               {(['free', 'holder'] as const).map((track) => {
                 const claimed = p.pass[track].includes(t.tier);
-                const locked = track === 'holder' && !lo.isHolder;
+                const locked = track === 'holder' && !premium;
                 return (
                   <button
                     key={track}
-                    disabled={!reached || claimed || locked}
-                    onClick={() => { if (update((cur) => claimPass(cur, t.tier, track, lo.isHolder))) { sfx.coin(); toast.good('Reward claimed!'); trackEvent('pass_claim', { kind: track }); } }}
-                    className={`mt-1.5 flex min-h-12 w-full flex-col items-center justify-center rounded-xl px-1 text-[11px] font-bold ${track === 'holder' ? 'bg-gold/15' : 'bg-panel'} ${reached && !claimed && !locked ? 'ring-2 ring-lime' : ''} disabled:opacity-60`}
+                    disabled={!locked && (!reached || claimed)}
+                    onClick={() => { if (locked) return showPass('pass'); if (update((cur) => claimPass(cur, t.tier, track, premium))) { sfx.coin(); toast.good('Reward claimed!'); trackEvent('pass_claim', { kind: track }); } }}
+                    className={`mt-1.5 flex min-h-12 w-full flex-col items-center justify-center rounded-xl px-1 text-[11px] font-bold ${track === 'holder' ? 'bg-gradient-to-b from-gold/25 to-gold/10 ring-1 ring-gold/25' : 'bg-panel'} ${reached && !claimed && !locked ? 'ring-2 ring-lime' : ''} disabled:opacity-60`}
                   >
-                    <span className="text-[9px] uppercase text-dim">{track === 'holder' ? 'Holder' : 'Free'}</span>
+                    <span className={`text-[9px] uppercase ${track === 'holder' ? 'text-gold' : 'text-dim'}`}>{track === 'holder' ? 'Premium' : 'Free'}</span>
                     {locked ? <Lock size={14} /> : claimed ? <Check size={14} className="text-lime" /> : rewardText(t[track])}
                   </button>
                 );
@@ -197,7 +200,7 @@ function SeasonPass() {
           );
         })}
       </div>
-      {!lo.isHolder && <p className="mt-2 text-xs text-dim">The holder track (bots, trails, the Season Crown frame) unlocks with a Chog.</p>}
+      {!premium && <p className="mt-2 text-xs text-dim">The Premium track (gear sets, the Cinder bot, trails, the Crown frame) unlocks with a Chog or the <button onClick={() => showPass('pass')} className="font-semibold text-gold underline-offset-2 hover:underline">Premium Pass</button>.</p>}
     </Panel>
   );
 }

@@ -6,6 +6,7 @@ export const CHOG_NFT = (process.env.NEXT_PUBLIC_CHOG_NFT_ADDRESS || '0xc96d31F8
 export const CHOG_TOKEN = (process.env.NEXT_PUBLIC_CHOG_TOKEN_ADDRESS || '0x350035555E10d9AfAF1566AaebfCeD5BA6C27777') as `0x${string}`;
 export const SHOP_ADDRESS = (process.env.NEXT_PUBLIC_SHOP_ADDRESS || '') as `0x${string}` | '';
 export const SEASONS_ADDRESS = (process.env.NEXT_PUBLIC_SEASONS_ADDRESS || '') as `0x${string}` | '';
+export const PASS_ADDRESS = (process.env.NEXT_PUBLIC_PASS_ADDRESS || '') as `0x${string}` | '';
 const WC_ID = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || '';
 const RPC = process.env.NEXT_PUBLIC_MONAD_RPC_URL || 'https://rpc.monad.xyz';
 
@@ -33,6 +34,7 @@ export const shopAbi = [
 export const seasonsAbi = [
   { type: 'function', name: 'claim', stateMutability: 'nonpayable', inputs: [{ name: 'seasonId', type: 'uint256' }, { name: 'amount', type: 'uint256' }, { name: 'proof', type: 'bytes32[]' }], outputs: [] },
   { type: 'function', name: 'hasClaimed', stateMutability: 'view', inputs: [{ name: 's', type: 'uint256' }, { name: 'a', type: 'address' }], outputs: [{ type: 'bool' }] },
+  { type: 'function', name: 'totalCommitted', stateMutability: 'view', inputs: [], outputs: [{ type: 'uint256' }] },
   {
     type: 'function', name: 'seasons', stateMutability: 'view', inputs: [{ name: 's', type: 'uint256' }],
     outputs: [{ name: 'start', type: 'uint64' }, { name: 'end', type: 'uint64' }, { name: 'claimDeadline', type: 'uint64' }, { name: 'prizeRoot', type: 'bytes32' }, { name: 'prizePool', type: 'uint128' }, { name: 'claimed', type: 'uint128' }],
@@ -47,5 +49,19 @@ export const seasonsAbi = [
       { name: 'signature', type: 'bytes' },
     ],
     outputs: [],
+  },
+] as const;
+
+export const passAbi = [
+  { type: 'function', name: 'buy', stateMutability: 'payable', inputs: [{ name: 'seasonId', type: 'uint256' }], outputs: [] },
+  { type: 'function', name: 'buyFor', stateMutability: 'payable', inputs: [{ name: 'seasonId', type: 'uint256' }, { name: 'holder', type: 'address' }], outputs: [] },
+  { type: 'function', name: 'sponsor', stateMutability: 'payable', inputs: [{ name: 'seasonId', type: 'uint256' }, { name: 'note', type: 'string' }], outputs: [] },
+  { type: 'function', name: 'claim', stateMutability: 'nonpayable', inputs: [{ name: 'seasonId', type: 'uint256' }, { name: 'amount', type: 'uint256' }, { name: 'proof', type: 'bytes32[]' }], outputs: [] },
+  { type: 'function', name: 'hasPass', stateMutability: 'view', inputs: [{ name: 's', type: 'uint256' }, { name: 'a', type: 'address' }], outputs: [{ type: 'bool' }] },
+  { type: 'function', name: 'hasClaimed', stateMutability: 'view', inputs: [{ name: 's', type: 'uint256' }, { name: 'a', type: 'address' }], outputs: [{ type: 'bool' }] },
+  { type: 'function', name: 'prizeBps', stateMutability: 'view', inputs: [], outputs: [{ type: 'uint16' }] },
+  {
+    type: 'function', name: 'seasons', stateMutability: 'view', inputs: [{ name: 's', type: 'uint256' }],
+    outputs: [{ name: 'price', type: 'uint128' }, { name: 'end', type: 'uint64' }, { name: 'claimDeadline', type: 'uint64' }, { name: 'pool', type: 'uint128' }, { name: 'claimed', type: 'uint128' }, { name: 'root', type: 'bytes32' }, { name: 'sold', type: 'uint32' }],
   },
 ] as const;

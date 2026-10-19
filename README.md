@@ -8,6 +8,7 @@
 - Climb ranked seasons (Bronze → Mythic), five campaign zones, daily quests, a daily combo puzzle and a season pass.
 - Progress lives on the **token id**: sell the Chog and its level, bots and record go with it.
 - Daily boosts (Full Tank, Turbo), invites that pay energy and cosmetics, clan chests, and season $CHOG prizes claimed in-game from a merkle root.
+- A live season prize pool in MON and $CHOG, fed by the Premium Pass (half of every sale), shop sales and sponsors. Chog holders get the Premium track free; anyone else can buy it for the season.
 - Ten Chog variants from the owner's character sheets (Wild, Forest Ranger, Desert Nomad, Crystal Mage, Cyber Ninja, Ice Guardian, Ocean Diver, Speed Runner, Cozy Hoodie, Space Explorer). Each one is a 3D gear set earned on the season pass, with a profile card and a five-scene storyboard.
 - Ops built in: `/admin` dashboard (D1/D7 retention, events, Spark economy), a public flag list, name filtering, Terms and Privacy pages.
 

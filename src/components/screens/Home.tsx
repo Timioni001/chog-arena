@@ -19,6 +19,7 @@ import { haptic, sfx } from '@/lib/sound';
 import { GuestBanner } from '../GuestBanner';
 import { art, faceOf, VARIANTS, type Variant } from '@/lib/art';
 import { CharacterFan, Donut, StoryBrowse, useVariantState } from '../showcase';
+import { PrizePoolCard } from '../PrizePool';
 import type { Progress } from '@/game/progress';
 
 interface Floater { id: number; x: number; y: number; text: string; crit: boolean }
@@ -222,6 +223,7 @@ export function HomeScreen() {
         </div>
 
         <aside className="space-y-5">
+          <PrizePoolCard />
           <QuickRows rate={rate} league={`${league.name} · ${p.mmr} MMR`} />
           <StatsCard p={p} xpNeed={xpNeed} onLab={() => setScreen('lab')} />
           <SquadCard />

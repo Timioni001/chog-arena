@@ -3,9 +3,11 @@
  * per-wallet proofs to the app so players can claim in-game.
  *
  *   npx tsx scripts/build-prize-root.ts --site https://YOUR_DOMAIN --season 1 --pool 100000 [--cap 5000] [--publish]
+ *   npx tsx scripts/build-prize-root.ts --site https://YOUR_DOMAIN --season 1 --asset mon --pool <MON in ChogPass> [--publish]
  *
- * --pool is the $CHOG amount (whole tokens) you will commit with setPrizeRoot; it must already sit
- * in ChogArenaSeasons. --publish needs ADMIN_TOKEN in the environment.
+ * --pool is the amount (whole tokens) you will commit: $CHOG already in ChogArenaSeasons, or with
+ * --asset mon the MON pool shown by ChogPass.seasons(id). MON has no per-wallet cap by default.
+ * --publish needs ADMIN_TOKEN in the environment.
  * Output: out/prizes-season-<n>.json and the exact setPrizeRoot arguments for the Safe.
  */
 import fs from 'node:fs';
@@ -25,7 +27,9 @@ function arg(name: string, fallback?: string): string {
 const site = arg('site').replace(/\/$/, '');
 const season = Number(arg('season', '1'));
 const pool = parseUnits(arg('pool'), 18);
-const cap = parseUnits(arg('cap', '5000'), 18);
+const asset = arg('asset', 'chog') === 'mon' ? 'mon' : 'chog';
+const unit = asset === 'mon' ? 'MON' : 'CHOG';
+const cap = parseUnits(arg('cap', asset === 'mon' ? '0' : '5000'), 18);
 const publish = process.argv.includes('--publish');
 const NFT = (process.env.NEXT_PUBLIC_CHOG_NFT_ADDRESS || '0xc96d31F8626c6D03Fae5dCD3d61e3FB9F4a73763') as `0x${string}`;
 const client = createPublicClient({ chain: monad, transport: http(process.env.MONAD_RPC_URL || 'https://rpc.monad.xyz', { retryCount: 4 }) });
@@ -44,21 +48,21 @@ async function main() {
 
   const outDir = path.resolve('out');
   fs.mkdirSync(outDir, { recursive: true });
-  const file = path.join(outDir, `prizes-season-${season}.json`);
-  fs.writeFileSync(file, JSON.stringify({ season, root: tree.root, total: total.toString(), snapshotBlock: block.toString(), entries, tree: tree.dump() }, null, 2));
+  const file = path.join(outDir, `prizes-${asset}-season-${season}.json`);
+  fs.writeFileSync(file, JSON.stringify({ season, asset, root: tree.root, total: total.toString(), snapshotBlock: block.toString(), entries, tree: tree.dump() }, null, 2));
 
   console.log(`Snapshot block ${block}, ${ranked.length} ranked Chogs → ${payouts.length} wallets`);
   console.log(`Root:        ${tree.root}`);
-  console.log(`Total:       ${formatUnits(total, 18)} CHOG (${total} wei)`);
-  console.log(`Unallocated: ${formatUnits(unallocated, 18)} CHOG stays in the vault for a later season`);
-  console.log(`\nSafe → ChogArenaSeasons.setPrizeRoot(${season}, ${tree.root}, ${total})`);
+  console.log(`Total:       ${formatUnits(total, 18)} ${unit} (${total} wei)`);
+  console.log(`Unallocated: ${formatUnits(unallocated, 18)} ${unit} stays in the pool for a later season`);
+  console.log(asset === 'mon' ? `\nSafe → ChogPass.setPrizeRoot(${season}, ${tree.root})` : `\nSafe → ChogArenaSeasons.setPrizeRoot(${season}, ${tree.root}, ${total})`);
   console.log(`Wrote ${file}`);
 
   if (publish) {
     const res = await fetch(`${site}/api/admin/claims`, {
       method: 'POST',
       headers: { 'content-type': 'application/json', authorization: `Bearer ${process.env.ADMIN_TOKEN ?? ''}` },
-      body: JSON.stringify({ season, root: tree.root, total: total.toString(), entries }),
+      body: JSON.stringify({ season, asset, root: tree.root, total: total.toString(), entries }),
     });
     console.log(`Publish: ${res.status} ${await res.text()}`);
   }
