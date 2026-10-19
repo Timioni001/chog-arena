@@ -1,7 +1,7 @@
 'use client';
 
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowUpRight, BatteryCharging, Bot, ChevronRight, Flame, Rocket, Sparkles as SparkIcon, Swords, Zap } from 'lucide-react';
+import { ArrowUpRight, BatteryCharging, Bot, ChevronLeft, ChevronRight, Flame, Rocket, Sparkles as SparkIcon, Swords, Zap } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ChogModel, type AnimCue, type Gear } from '../three/ChogModel';
 import { Stage, World, webglAvailable } from '../three/Scene';
@@ -263,9 +263,9 @@ function Spotlight() {
   const [hold, setHold] = useState(false);
   useEffect(() => {
     if (hold || reduced) return;
-    const t = setInterval(() => setI((x) => (x + 1) % VARIANTS.length), 7000);
-    return () => clearInterval(t);
-  }, [hold, reduced]);
+    const t = setTimeout(() => setI((x) => (x + 1) % VARIANTS.length), 7000);
+    return () => clearTimeout(t);
+  }, [hold, reduced, i]);
   const v = VARIANTS[i];
   const own = owns(v);
   const faces = VARIANTS.filter((x) => x.emotes.length && x.id !== v.id).slice(0, 3);
@@ -297,10 +297,22 @@ function Spotlight() {
           <Img src={art.cut(v.id)} eager className="pointer-events-none absolute bottom-0 right-[-2%] h-[122%] w-auto max-w-[62%] object-contain object-bottom drop-shadow-[0_26px_30px_rgba(0,0,0,0.45)] sm:right-[3%] sm:h-[128%]" />
         </motion.div>
       </AnimatePresence>
-      <div className="absolute right-6 top-3 flex gap-1.5 sm:top-4" role="tablist" aria-label="Featured Chogs">
-        {VARIANTS.map((x, k) => (
-          <button key={x.id} role="tab" aria-selected={k === i} aria-label={x.name} onClick={() => setI(k)} className={`h-1.5 rounded-full transition-all ${k === i ? 'w-6 bg-chog-3' : 'w-1.5 bg-line hover:bg-dim'}`} />
-        ))}
+      {/* pager sits top-left, clear of the character breaking out on the right */}
+      <div className="absolute left-1 top-0 flex h-9 items-center gap-3 sm:left-2 sm:h-11">
+        <span className="font-display text-xs font-semibold tnum text-dim"><span className="text-ink">{String(i + 1).padStart(2, '0')}</span> / {String(VARIANTS.length).padStart(2, '0')}</span>
+        <div className="flex items-center gap-1" role="tablist" aria-label="Featured Chogs">
+          {VARIANTS.map((x, k) => (
+            <button key={x.id} role="tab" aria-selected={k === i} aria-label={x.name} onClick={() => setI(k)} className="group grid h-5 place-items-center">
+              <span className={`relative block h-[3px] overflow-hidden rounded-full transition-all duration-300 ${k === i ? 'w-8 bg-white/15' : 'w-3 bg-white/15 group-hover:bg-white/35'}`}>
+                {k === i && <span key={`${i}-${hold}`} className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-chog-3 to-mist" style={{ animation: hold || reduced ? 'none' : 'pagerfill 7s linear forwards', width: hold || reduced ? '100%' : undefined }} />}
+              </span>
+            </button>
+          ))}
+        </div>
+        <div className="hidden items-center gap-1 sm:flex">
+          <button onClick={() => setI((x) => (x - 1 + VARIANTS.length) % VARIANTS.length)} className="grid size-7 place-items-center rounded-full text-dim ring-1 ring-white/10 hover:bg-white/5 hover:text-ink" aria-label="Previous featured Chog"><ChevronLeft size={14} /></button>
+          <button onClick={() => setI((x) => (x + 1) % VARIANTS.length)} className="grid size-7 place-items-center rounded-full text-dim ring-1 ring-white/10 hover:bg-white/5 hover:text-ink" aria-label="Next featured Chog"><ChevronRight size={14} /></button>
+        </div>
       </div>
     </section>
   );
