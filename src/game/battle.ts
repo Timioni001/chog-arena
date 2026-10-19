@@ -363,10 +363,6 @@ export function scoreBattle(state: BattleState): BattleResult {
   return { winner, laneWinners, lanePower: powers, totalPower: total, score: [score(0), score(1)] };
 }
 
-export function describeCard(def: CardDef): string {
-  return [`${def.name} (${def.cost}⚡ ${def.power}✊)`, abilityText(def.ability)].filter(Boolean).join(' — ');
-}
-
 /** Deep clone that keeps CardDef references shared (they are immutable). */
 export function cloneBattle(state: BattleState): BattleState {
   const cloneCard = (c: CardInstance): CardInstance => ({ ...c });

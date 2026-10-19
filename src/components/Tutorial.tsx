@@ -4,14 +4,14 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useState } from 'react';
 import { Button } from './ui';
 import { useGame } from '@/lib/store';
-import { ART } from '@/lib/art';
+import { art } from '@/lib/art';
 import { track } from '@/lib/analytics';
 
 const STEPS = [
-  { title: 'Meet your Chog', body: 'Hold a Chog Genesis NFT and its traits build your fighter: parts, colors, element, stats and battle cards. No Chog yet? A demo Chog is ready to go.', img: ART.story('wild', 1) },
-  { title: 'Tap for Sparks', body: 'Each tap spends energy and earns Sparks. Fast taps build a combo, and filling the charge bar sets off an Overcharge.', img: ART.story('wild', 2) },
-  { title: 'Bots work while you sleep', body: 'Equip bots to earn Sparks every hour, even offline. Merge two matching bots to level them up.', img: ART.story('wild', 5) },
-  { title: 'Win two of three lanes', body: 'Six quick turns. Play cards up to your energy, then reveal. Flame beats Moss, Moss beats Tide, Tide beats Flame. Ranked seasons and $CHOG prizes are for holders.', img: ART.story('wild', 4) },
+  { title: 'Meet your Chog', body: 'Hold a Chog Genesis NFT and its traits build your fighter: parts, colors, element, stats and battle cards. No Chog yet? A demo Chog is ready to go.', img: art.story('wild', 1) },
+  { title: 'Tap for Sparks', body: 'Each tap spends energy and earns Sparks. Fast taps build a combo, and filling the charge bar sets off an Overcharge.', img: art.story('wild', 2) },
+  { title: 'Bots work while you sleep', body: 'Equip bots to earn Sparks every hour, even offline. Merge two matching bots to level them up.', img: art.story('wild', 5) },
+  { title: 'Win two of three lanes', body: 'Six quick turns. Play cards up to your energy, then reveal. Flame beats Moss, Moss beats Tide, Tide beats Flame. Ranked seasons and $CHOG prizes are for holders.', img: art.story('wild', 4) },
 ];
 
 export function Tutorial() {

@@ -99,7 +99,3 @@ export const CardView = memo(function CardView({
 });
 
 const BOT_BY_CARD: Record<string, (typeof BOT_SPECIES)[number]> = Object.fromEntries(BOT_SPECIES.map((b) => [b.card.name, b]));
-
-export function glyphFor(key: string) {
-  return GLYPHS[key] ?? '✦';
-}

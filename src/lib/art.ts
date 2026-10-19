@@ -7,7 +7,6 @@ import { FREE_GEAR, HOLDER_GEAR } from '@/game/season';
  * downsampled, so it is never shown larger than its pixels.
  */
 export type VariantId = 'wild' | 'forest' | 'desert' | 'crystal' | 'cyber' | 'ice' | 'ocean' | 'runner' | 'hoodie' | 'space';
-export type GearId = Exclude<VariantId, 'wild'>;
 
 export interface Variant {
   id: VariantId;
@@ -121,16 +120,6 @@ export const variantById = (id: string | null | undefined): Variant => VARIANTS.
 /** A face for avatar rails: first emote if the sheet has expressions, else the cutout. */
 export const faceOf = (v: Variant): string => (v.emotes.length ? art.emote(v.id, v.emotes[0]) : art.cut(v.id));
 
-/** Legacy names still used around the app. */
-export const ART = {
-  heroWild: art.hero('wild'),
-  heroSpace: art.hero('space'),
-  heroHoodie: art.hero('hoodie'),
-  heroRunner: art.hero('runner'),
-  avatar: art.emote('wild', 'happy'),
-  story: (set: VariantId, n: 1 | 2 | 3 | 4 | 5) => art.story(set, n),
-} as const;
-
 export type Emote = 'default' | 'happy' | 'surprised' | 'determined' | 'relaxed';
 export const emoteSrc = (id: Emote) => art.emote('wild', id);
 export const EMOTES: { id: Emote; label: string; src: string }[] = [
@@ -164,9 +153,6 @@ export function cardArt(def: CardDef): string | null {
   if (def.source === 'bot' || def.id.startsWith('en-')) return null;
   return emoteSrc(cardEmote(def.ability));
 }
-
-/** Gear sets: every variant except the base Wild Chog. */
-export const GEAR = VARIANTS.filter((v) => v.unlock).map((v) => ({ ...v, id: v.id as GearId, unlock: v.unlock! }));
 
 export const ZONE_ART: Record<string, string> = {
   cloud: art.hero('crystal'),

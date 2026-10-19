@@ -16,8 +16,6 @@ export interface AnimCue {
 export type Gear = 'space' | 'hoodie' | 'runner' | VariantGear | null;
 
 export const RenderContext = createContext<{ low: boolean; particles: boolean; reducedMotion: boolean }>({ low: false, particles: true, reducedMotion: false });
-/** @deprecated alias kept for older imports */
-export const OutlineContext = RenderContext;
 
 const CREAM = '#f6ead8';
 const PINK = '#ff5fa2';

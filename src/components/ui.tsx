@@ -59,10 +59,6 @@ export function Title({ children, sub, right, eyebrow }: { children: ReactNode; 
   );
 }
 
-export function Eyebrow({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <div className={`eyebrow ${className}`}>{children}</div>;
-}
-
 export function Pill({ children, className = '', color }: { children: ReactNode; className?: string; color?: string }) {
   return (
     <span className={`inline-flex items-center gap-1 rounded-full border border-line bg-panel-2 px-2.5 py-0.5 text-[0.72rem] font-semibold ${className}`} style={color ? { color, borderColor: `${color}55`, background: `${color}18` } : undefined}>
