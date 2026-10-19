@@ -18,6 +18,7 @@ Benchmarked against the reference games (Marvel Snap for battles; Hamster Kombat
 | 10 | Real-device QA, Lighthouse ≥ 85, 60 fps | ⏳ Manual pass on devices |
 | 11 | Terms and Privacy pages | ✅ Shipped as templates (needs legal review) |
 | 12 | Economy admin view | ✅ Shipped at `/admin` (sources vs sinks from cloud saves) |
+| 12b | Live season prize pool (MON + $CHOG) and Premium season pass in MON (`ChogPass`), sponsor top-ups | ✅ Shipped; deploy `ChogPass` per DEPLOY.md step 7b |
 
 ## First weeks after launch
 
@@ -35,7 +36,12 @@ Benchmarked against the reference games (Marvel Snap for battles; Hamster Kombat
 | 22 | Clan chest claims | ✅ Shipped. Clan chat and clan wars still to come |
 | 23 | Embedded wallet (email login) | ⏳ |
 | 24 | Scripted first battle | ⏳ |
+| 25 | Ten Chog variants as 3D gear sets with profile cards and storyboards | ✅ Shipped |
+| 26 | Cosmetic shop: buy variant gear, emotes, frames and arena backdrops directly | ⏳ |
+| 27 | Rent a Chog: holders lend their Chog for ranked play, earn rent, 10% fee | ⏳ |
+| 28 | Sponsored seasons: sponsor branding on the season banner and a sponsored variant | ⏳ |
+| 29 | Larger match layout on desktop | ⏳ |
 
 ## Later
 
-Telegram Mini App wrapper · onchain bots in the loop · replays and spectating · music · localisation · seasonal cosmetic gear drops.
+Telegram Mini App wrapper · onchain bots in the loop · replays and spectating · music · localisation · new variants each season.
