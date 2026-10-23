@@ -15,7 +15,7 @@ import { newProgress } from '@/game/progress';
 import { api } from '@/lib/api';
 import { COLLECTION } from '@/game/collection';
 import { CHOG_TOKEN } from '@/lib/wagmi';
-import { checkName } from '@/game/moderation';
+import { NameChogForm } from '../NameChog';
 
 export function ProfileScreen() {
   const { address, connector } = useAccount();
@@ -30,8 +30,6 @@ export function ProfileScreen() {
   const replace = useGame((s) => s.replaceProgress);
   const finishTutorial = useGame((s) => s.finishTutorial);
   const lo = useLoadout();
-  const nameCheck = settings.displayName.trim() ? checkName(settings.displayName) : null;
-  const nameError = nameCheck && !nameCheck.ok ? nameCheck.reason : null;
   const health = useQuery({ queryKey: ['health'], queryFn: () => api<{ store: string; attestations: boolean; collection: { indexedAt: string } }>('/api/health') });
 
   return (
@@ -91,12 +89,11 @@ export function ProfileScreen() {
           <Toggle label="Haptics" on={settings.haptics} set={(v) => setSettings({ haptics: v })} />
           <Toggle label="Reduce motion" hint="Calmer animations, no screen shake or particles." on={settings.reducedMotion} set={(v) => setSettings({ reducedMotion: v })} />
           <Toggle label="Hide my wallet on leaderboards" on={settings.hideWallet} set={(v) => setSettings({ hideWallet: v })} />
-          <Row label="Display name" hint="Shown on leaderboards instead of your Chog number.">
-            <div className="w-full sm:w-64">
-              <input value={settings.displayName} maxLength={20} onChange={(e) => setSettings({ displayName: e.target.value })} aria-invalid={!!nameError} className="w-full rounded-xl border border-line bg-panel-2 px-3 py-2.5" placeholder={lo.profile.name} />
-              {nameError && <div className="mt-1 text-xs text-danger">{nameError} Your Chog number is shown instead.</div>}
-            </div>
-          </Row>
+          {lo.isHolder && (
+            <Row label="Chog name" hint={`What ${lo.profile.name} is called on leaderboards, in battles and on share cards.`}>
+              <NameChogForm className="w-full sm:w-72" />
+            </Row>
+          )}
           <div className="flex flex-wrap gap-2">
             <Button size="sm" tone="panel" onClick={() => useGame.setState({ tutorialDone: false })}>Replay tutorial</Button>
             {!lo.isHolder && <Button size="sm" tone="ghost" onClick={() => { replace('guest', newProgress()); finishTutorial(); toast.info('Demo progress reset.'); }}>Reset demo progress</Button>}
@@ -131,7 +128,7 @@ function ChogPick({ id, active, onPick }: { id: number; active: boolean; onPick:
 
 function Row({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
-    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
       <div>
         <div className="font-bold">{label}</div>
         {hint && <div className="text-xs text-dim">{hint}</div>}

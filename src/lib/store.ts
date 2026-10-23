@@ -37,6 +37,12 @@ interface GameState {
   clan: { id: string; name: string; tag: string; role: 'leader' | 'member' } | null;
   /** Gear previewed in the Lab (not saved). */
   tryOn: string | null;
+  /** Names players give their Chogs, by token id. Kept on this device and sent with ranked results. */
+  chogNames: Record<string, string>;
+  /** Chogs we already asked to name, so "Later" doesn't ask again. */
+  namePrompted: number[];
+  nameChog: (tokenId: number, name: string) => void;
+  skipNaming: (tokenId: number) => void;
   setTryOn: (g: string | null) => void;
   setScreen: (s: Screen) => void;
   setSettings: (s: Partial<Settings>) => void;
@@ -56,6 +62,15 @@ export const useGame = create<GameState>()(
       screen: 'home',
       settings: { quality: 'auto', sound: true, music: false, haptics: true, reducedMotion: false, theme: 'dark', hideWallet: false, displayName: '', navCollapsed: false },
       tryOn: null,
+      chogNames: {},
+      namePrompted: [],
+      nameChog: (tokenId, name) => {
+        const chogNames = { ...get().chogNames };
+        if (name.trim()) chogNames[tokenId] = name.trim();
+        else delete chogNames[tokenId];
+        set({ chogNames, namePrompted: [...new Set([...get().namePrompted, tokenId])] });
+      },
+      skipNaming: (tokenId) => set({ namePrompted: [...new Set([...get().namePrompted, tokenId])] }),
       setTryOn: (tryOn) => set({ tryOn }),
       progress: { guest: newProgress() },
       activeKey: 'guest',
@@ -105,7 +120,7 @@ export const useGame = create<GameState>()(
           return { getItem: (k) => mem.get(k) ?? null, setItem: (k, v) => void mem.set(k, v), removeItem: (k) => void mem.delete(k) };
         }
       }),
-      partialize: (s) => ({ settings: s.settings, progress: s.progress, lastKey: s.lastKey, tutorialDone: s.tutorialDone, clan: s.clan }),
+      partialize: (s) => ({ settings: s.settings, progress: s.progress, lastKey: s.lastKey, tutorialDone: s.tutorialDone, clan: s.clan, chogNames: s.chogNames, namePrompted: s.namePrompted }),
       // Wallet state is never trusted from storage: it is re-read from the chain each visit.
       merge: (persisted, current) => {
         const p = persisted as Partial<GameState>;

@@ -29,6 +29,7 @@ import { passTier, PASS_TIERS, SEASON } from '@/game/season';
 import { art, VARIANTS } from '@/lib/art';
 import { toast } from './ui';
 import { PassDialogs, usePremium } from './PrizePool';
+import { NameChogPrompt } from './NameChog';
 
 type NavItem = { id: Screen; label: string; icon: typeof HomeIcon; mobile?: boolean; group: 'play' | 'you' };
 const NAV: NavItem[] = [
@@ -166,6 +167,7 @@ export function App() {
       </div>
 
       <PassDialogs />
+      <NameChogPrompt />
       <AnimatePresence>{matchActive && <MatchView />}</AnimatePresence>
       {!tutorialDone && <Tutorial />}
     </div>
@@ -235,13 +237,13 @@ function SidebarBody({ screen, go, compact, onToggle, mobile }: { screen: Screen
         {compact ? (
           <>
             <button onClick={() => go('battle')} className="play-orb grid size-12 place-items-center rounded-2xl text-white" aria-label="Play a match" title="Play"><Swords size={19} /></button>
-            <button onClick={() => go('lab')} aria-label="Your Chog" title={lo.profile.name} className="rounded-2xl ring-1 ring-line transition hover:ring-chog-2"><ChogSprite look={lo.look} size={44} /></button>
+            <button onClick={() => go('lab')} aria-label="Your Chog" title={lo.name} className="rounded-2xl ring-1 ring-line transition hover:ring-chog-2"><ChogSprite look={lo.look} size={44} /></button>
           </>
         ) : (
           <button onClick={() => go('lab')} className="flex w-full items-center gap-3 rounded-2xl border border-white/[0.07] bg-white/[0.04] p-2.5 text-left transition hover:bg-white/[0.07]">
             <ChogSprite look={lo.look} size={40} />
             <span className="min-w-0">
-              <span className="block truncate text-sm font-semibold">{lo.profile.name}</span>
+              <span className="block truncate text-sm font-semibold">{lo.name}</span>
               <span className="block text-xs text-dim">Level {p.level} · {lo.isHolder ? lo.profile.tier : 'Demo Chog'}</span>
             </span>
           </button>
@@ -266,7 +268,7 @@ function Header({ screen, go, openDrawer }: { screen: Screen; go: (s: Screen) =>
           {screen === 'home' ? (
             <div className="min-w-0 font-display leading-tight text-dim sm:text-2xl">
               <span className="block text-xs sm:inline sm:text-[length:inherit]">{greeting()}<span className="hidden sm:inline">, </span></span>
-              <span className="block truncate text-[1.1rem] font-semibold text-ink sm:inline sm:text-[length:inherit]">{lo.profile.name}</span>
+              <span className="block truncate text-[1.1rem] font-semibold text-ink sm:inline sm:text-[length:inherit]">{lo.name}</span>
             </div>
           ) : (
             <>

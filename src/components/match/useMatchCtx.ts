@@ -17,9 +17,10 @@ export function useMatchCtx(): MatchCtx {
       bots: p.bots.filter((b) => p.equipped.includes(b.uid)).slice(0, lo.slots),
       owned: Math.max(1, lo.owned),
       skills: skillTotals(p.skills).stats,
-      displayName: settings.displayName,
+      // The Chog's own name wins; the older per-device display name is the fallback.
+      displayName: lo.nickname ?? settings.displayName,
       hideWallet: settings.hideWallet,
     }),
-    [lo.fighter, lo.tokenId, lo.slots, lo.owned, p.bots, p.equipped, p.skills, settings.displayName, settings.hideWallet],
+    [lo.fighter, lo.tokenId, lo.slots, lo.owned, lo.nickname, p.bots, p.equipped, p.skills, settings.displayName, settings.hideWallet],
   );
 }
