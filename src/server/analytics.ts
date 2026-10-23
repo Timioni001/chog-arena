@@ -46,7 +46,7 @@ export async function recordLedger(prev: Record<string, number> | undefined, nex
 
 export const TRACKED = [
   'session_start', 'tutorial_done', 'wallet_connected', 'sign_in', 'match_start', 'match_finish', 'quest_claim', 'checkin', 'combo_solved',
-  'bot_buy', 'bot_merge', 'boost', 'pass_claim', 'share', 'challenge_copy', 'referral_landing', 'prize_claim',
+  'bot_buy', 'bot_merge', 'boost', 'pass_claim', 'share', 'challenge_copy', 'referral_landing', 'prize_claim', 'chog_named',
 ];
 export const LEDGER = ['taps', 'bots', 'battle:ranked', 'battle:campaign', 'battle:practice', 'battle:challenge', 'quests', 'checkin', 'combo', 'pass', 'clanChest', 'scrap', 'shop:bots', 'merge', 'respec'];
 

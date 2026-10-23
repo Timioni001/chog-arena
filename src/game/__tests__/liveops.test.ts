@@ -12,7 +12,7 @@ describe('name moderation', () => {
     for (const good of ['Spiky 143', 'Spicy Chog', 'Peacock', 'Grape Juice', 'Modern Quill', 'Torpedo', 'Scunthorpe Spikes', 'Dickens']) expect(checkName(good).ok, good).toBe(true);
   });
   it('rejects slurs, obfuscation, impersonation, links and addresses', () => {
-    for (const bad of ['f u c k', 'Fvck', 'sh1t', 'ADMIN', 'Official Chog', 'Chog Mod', 'chog.xyz', '0xc96d31F8626c6D', 'x', 'big dick', 'n1gg3r']) expect(checkName(bad).ok, bad).toBe(false);
+    for (const bad of ['f u c k', 'Fvck', 'sh1t', 'ADMIN', 'Official Chog', 'Chog Mod', 'chog.xyz', '0xc96d31F8626c6D', 'x', 'big dick', 'n1gg3r', 'f4ck face', 'fck it', 'Phuk']) expect(checkName(bad).ok, bad).toBe(false);
   });
 });
 

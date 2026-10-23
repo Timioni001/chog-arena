@@ -39,8 +39,8 @@ export function checkName(raw: string, opts: { min?: number; max?: number } = {}
   if (/https?:|www\.|\.(com|xyz|io|gg)\b/i.test(value)) return { ok: false, reason: 'Links are not allowed in names.' };
   if (/0x[a-f0-9]{6,}/i.test(value)) return { ok: false, reason: 'Wallet addresses are not allowed in names.' };
   const n = ALLOW.reduce((acc, w) => acc.split(w).join(''), normaliseName(value));
-  // Also check common letter swaps (fvck, phuck, kunt).
-  const forms = [n, n.replace(/v/g, 'u').replace(/ph/g, 'f'), n.replace(/ph/g, 'f')];
+  // Also check common letter swaps (fvck, phuck, kunt) and dropped or swapped vowels (fck, f4ck, fuk).
+  const forms = [n, n.replace(/v/g, 'u').replace(/ph/g, 'f'), n.replace(/ph/g, 'f'), n.replace(/ph/g, 'f').replace(/f[aeo]?ck|fuk/g, 'fuck')];
   const words = value.split(/[^\p{L}\p{N}@$!|]+/u).map(normaliseName).filter(Boolean);
   const wordForms = words.flatMap((w) => [w, w.replace(/v/g, 'u').replace(/ph/g, 'f')]);
   if (forms.some((f) => BLOCKED.some((w) => f.includes(w))) || wordForms.some((w) => BLOCKED_WORDS.includes(w))) {
