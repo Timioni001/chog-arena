@@ -17,6 +17,12 @@ export interface Kv {
   smembers(key: string): Promise<string[]>;
   sadd(key: string, member: string): Promise<void>;
   srem(key: string, member: string): Promise<void>;
+  zcard(key: string): Promise<number>;
+  /** Many plain values in one round trip (missing keys come back null). */
+  mget<T>(keys: string[]): Promise<(T | null)[]>;
+  /** HyperLogLog unique counts: pfcount over several keys counts the union. */
+  pfadd(key: string, member: string, ttlSec?: number): Promise<void>;
+  pfcount(keys: string[]): Promise<number>;
   kind: 'memory' | 'upstash';
 }
 
@@ -51,6 +57,10 @@ class MemoryKv implements Kv {
   async smembers(key: string) { return [...(this.sets.get(key) ?? [])]; }
   async sadd(key: string, member: string) { let s = this.sets.get(key); if (!s) { s = new Set(); this.sets.set(key, s); } s.add(member); }
   async srem(key: string, member: string) { this.sets.get(key)?.delete(member); }
+  async zcard(key: string) { return this.z(key).size; }
+  async mget<T>(keys: string[]) { return Promise.all(keys.map((k) => this.get<T>(k))); }
+  async pfadd(key: string, member: string) { await this.sadd(`hll:${key}`, member); }
+  async pfcount(keys: string[]) { return new Set(keys.flatMap((k) => [...(this.sets.get(`hll:${k}`) ?? [])])).size; }
 }
 
 class UpstashKv implements Kv {
@@ -83,6 +93,21 @@ class UpstashKv implements Kv {
   async smembers(key: string) { return this.cmd<string[]>('SMEMBERS', key); }
   async sadd(key: string, member: string) { await this.cmd('SADD', key, member); }
   async srem(key: string, member: string) { await this.cmd('SREM', key, member); }
+  async zcard(key: string) { return Number(await this.cmd<number>('ZCARD', key)); }
+  async mget<T>(keys: string[]) {
+    if (!keys.length) return [];
+    const out: (T | null)[] = [];
+    for (let i = 0; i < keys.length; i += 500) {
+      const vals = await this.cmd<(string | null)[]>('MGET', ...keys.slice(i, i + 500));
+      for (const v of vals) out.push(v === null ? null : (JSON.parse(v) as T));
+    }
+    return out;
+  }
+  async pfadd(key: string, member: string, ttlSec?: number) {
+    const added = await this.cmd<number>('PFADD', key, member);
+    if (ttlSec && added) await this.cmd('EXPIRE', key, ttlSec);
+  }
+  async pfcount(keys: string[]) { return keys.length ? Number(await this.cmd<number>('PFCOUNT', ...keys)) : 0; }
 }
 
 const g = globalThis as unknown as { __chogKv?: Kv };

@@ -26,9 +26,4 @@ export async function requireOwner(tokenId: number) {
   return s.address;
 }
 
-/** Admin endpoints require `Authorization: Bearer <ADMIN_TOKEN>` (a Worker secret). */
-export function requireAdmin(req: Request) {
-  const token = process.env.ADMIN_TOKEN;
-  const got = req.headers.get('authorization')?.replace(/^Bearer\s+/i, '');
-  if (!token || token.length < 16 || got !== token) throw new ArenaError(401, 'Admin token required.');
-}
+export { requireAdmin } from './admin';

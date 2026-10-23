@@ -18,6 +18,8 @@ import { beats } from '@/game/elements';
 import { seal, unseal } from './session';
 import { activeFlag } from './flags';
 import { checkName } from '@/game/moderation';
+import { recordMatch } from './analytics';
+import { getOps } from './ops';
 
 export type Mode = 'ranked' | 'practice' | 'campaign' | 'challenge';
 export const TRANSFER_LOCK_MS = 24 * 60 * 60 * 1000;
@@ -122,6 +124,7 @@ export async function startMatch(args: { mode: Mode; tokenId: number | null; add
       throw new ArenaError(401, 'Sign in with your wallet to play ranked.');
     }
   }
+  if (mode === 'ranked' && (await getOps()).rankedPaused) throw new ArenaError(503, 'Ranked is paused for a few minutes of maintenance. Practice and campaign still work.');
   if (mode === 'ranked' && tokenId === null) throw new ArenaError(403, 'Ranked needs a Chog. Grab one on OpenSea or Magic Eden.');
   if (mode === 'ranked' && tokenId !== null) {
     const flag = await activeFlag(tokenId);
@@ -224,6 +227,7 @@ export async function finishMatch(args: { matchId: string; ticket?: string; play
   }
   const result = state.result!;
   const won = result.winner === null ? null : result.winner === 0;
+  await recordMatch(pending.mode, won).catch(() => undefined);
   const elementLaneWin = result.laneWinners.some((w, l) => w === 0 && state.sides[0].lanes[l].some((c) => state.sides[1].lanes[l].some((e) => beats(c.def.element, e.def.element))));
 
   let mmr: number | null = null, mmrDelta = 0, rank: number | null = null, attestation: MatchAttestation | null = null, rewardsLockedUntil: number | null = null;

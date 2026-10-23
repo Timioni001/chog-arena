@@ -1,5 +1,6 @@
 'use client';
 
+import { reportTx } from '@/lib/api';
 import { animate, AnimatePresence, motion } from 'framer-motion';
 import { Check, Crown, Gift, HandCoins, Lock, Sparkles, Trophy, Zap } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
@@ -229,6 +230,7 @@ function useMonadWrite() {
     if (chainId !== monad.id) await switchChainAsync({ chainId: monad.id });
     const hash = await writeContractAsync(args as never);
     await client?.waitForTransactionReceipt({ hash });
+    reportTx(hash);
     return hash;
   };
   return { send, isPending };

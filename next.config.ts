@@ -32,6 +32,14 @@ const nextConfig: NextConfig = {
         ],
       },
       { source: '/sw.js', headers: [{ key: 'Cache-Control', value: 'no-cache' }] },
+      ...['/admin', '/api/admin/:path*'].map((source) => ({
+        source,
+        headers: [
+          { key: 'Cache-Control', value: 'no-store' },
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'X-Robots-Tag', value: 'noindex, nofollow' },
+        ],
+      })),
     ];
   },
 };

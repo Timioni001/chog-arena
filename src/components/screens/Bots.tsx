@@ -1,5 +1,6 @@
 'use client';
 
+import { reportTx } from '@/lib/api';
 import { Lock, Merge, Plus, Recycle, ShoppingBag, X } from 'lucide-react';
 import { useState } from 'react';
 import { useAccount, useReadContract, useWriteContract } from 'wagmi';
@@ -218,7 +219,7 @@ function ChogItem({ item, disabled }: { item: (typeof CHOG_ITEMS)[number]; disab
         await writeContractAsync({ address: CHOG_TOKEN, abi: erc20Abi, functionName: 'approve', args: [SHOP_ADDRESS as `0x${string}`, price] });
         await allowance.refetch();
       }
-      await writeContractAsync({ address: SHOP_ADDRESS as `0x${string}`, abi: shopAbi, functionName: 'buy', args: [BigInt(item.id), 1, price] });
+      reportTx(await writeContractAsync({ address: SHOP_ADDRESS as `0x${string}`, abi: shopAbi, functionName: 'buy', args: [BigInt(item.id), 1, price] }));
       toast.good(`${item.name} purchased.`);
     } catch (e) {
       toast.bad((e as Error).message.split('\n')[0]);

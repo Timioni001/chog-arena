@@ -14,7 +14,7 @@ self.addEventListener('activate', (e) => {
 
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
-  if (e.request.method !== 'GET' || url.origin !== location.origin || url.pathname.startsWith('/api/')) return;
+  if (e.request.method !== 'GET' || url.origin !== location.origin || url.pathname.startsWith('/api/') || url.pathname.startsWith('/admin')) return;
   if (url.pathname.startsWith('/_next/static/') || /\.(svg|png|jpg|webp|woff2?)$/.test(url.pathname)) {
     e.respondWith(
       caches.match(e.request).then(

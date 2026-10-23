@@ -233,7 +233,7 @@ npm run dev                    # http://localhost:3000
 | Build a season payout root ($CHOG or MON) | `npm run prizes:build -- --site … --season 1 --pool … [--asset mon]` |
 | Re-index the collection from chain | `npm run index:chogs` |
 
-Every key, step by step: **[docs/DEPLOY.md](docs/DEPLOY.md)**. Season operations are in step 11.
+Every key, step by step: **[docs/DEPLOY.md](docs/DEPLOY.md)**. Season operations are in step 11. The owner console (players, income, live ops) and how to lock it down: **[docs/ADMIN.md](docs/ADMIN.md)**.
 
 ### Try it
 

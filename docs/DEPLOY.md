@@ -51,7 +51,7 @@ Copy the 64-character output. You'll store it as a Cloudflare secret in step 9.
 
 ## 1b. `ADMIN_TOKEN` (required for ops)
 
-Unlocks `/admin` (retention, events, Spark economy, flags), flagging Chogs, and publishing season prize proofs.
+Unlocks the owner console at `/admin` (players, retention, income, live ops, health), flagging Chogs, and publishing season prize proofs. Lock the console down further with [ADMIN.md](ADMIN.md).
 
 ```bash
 openssl rand -hex 24
@@ -283,7 +283,7 @@ cast call <SEASONS> "matches(uint256,uint256)(uint32)" 1 <YOUR_TOKEN_ID> --rpc-u
 ## 11. Running a season (ops)
 
 **During the season**
-- Dashboard: `https://YOUR_DOMAIN/admin` → paste `ADMIN_TOKEN`. Shows daily actives, new players, D1/D7 retention, key events and Spark sources vs sinks.
+- Console: `https://YOUR_DOMAIN/admin` → enter `ADMIN_TOKEN`. Players and retention, onchain income, announcements, the ranked kill switch and health checks. See [ADMIN.md](ADMIN.md).
 - Flag a cheater (shown publicly on Ranks with the reason; blocks ranked and prize boards):
   ```bash
   curl -X POST https://YOUR_DOMAIN/api/admin/flags -H "authorization: Bearer $ADMIN_TOKEN" \
@@ -324,11 +324,12 @@ npm run preview           # builds with OpenNext and serves on http://localhost:
 |---|---|---|
 | `SESSION_SECRET` | 1 | Worker secret |
 | `ADMIN_TOKEN` | 1b | Worker secret + your shell when running `prizes:build` |
+| `ADMIN_ADDRESSES` | [ADMIN.md](ADMIN.md) | Worker secret (optional wallet allowlist for `/admin`) |
 | `ATTESTOR_PRIVATE_KEY` | 2 | Worker secret |
 | `ATTESTOR_ADDRESS` | 2 | deploy env (contract constructor) |
 | deployer key | 3 | Foundry keystore `chog-deployer` |
 | `OWNER_MULTISIG`, `TREASURY_ADDRESS` | 4 | deploy env |
-| `MONAD_RPC_URL` | 5 | Worker secret (or var in `wrangler.jsonc`) |
+| `MONAD_RPC_URL` | 5 | Worker secret |
 | `NEXT_PUBLIC_MONAD_RPC_URL` | 5 | `.env.production.local` |
 | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | 6 | Worker secrets |
 | `NEXT_PUBLIC_SEASONS_ADDRESS`, `NEXT_PUBLIC_SHOP_ADDRESS` | 7 | `.env.production.local` |

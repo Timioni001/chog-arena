@@ -29,6 +29,7 @@ import { passTier, PASS_TIERS, SEASON } from '@/game/season';
 import { art, VARIANTS } from '@/lib/art';
 import { toast } from './ui';
 import { PassDialogs, usePremium } from './PrizePool';
+import { Announcement } from './Announcement';
 
 type NavItem = { id: Screen; label: string; icon: typeof HomeIcon; mobile?: boolean; group: 'play' | 'you' };
 const NAV: NavItem[] = [
@@ -146,6 +147,7 @@ export function App() {
 
       <div className="flex min-w-0 flex-1 flex-col">
         <Header screen={screen} go={go} openDrawer={() => setDrawer(true)} />
+        <Announcement />
         <main className="mx-auto w-full max-w-[1380px] flex-1 px-4 pb-10 pt-2 sm:px-6 lg:pl-3 lg:pr-8">
           <AnimatePresence mode="wait">
             <motion.div key={screen} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.22, ease: 'easeOut' }}>
