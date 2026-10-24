@@ -261,7 +261,7 @@ Secrets apply immediately; no redeploy needed. Changing any `NEXT_PUBLIC_*` valu
 Sign-in checks that the signed message's domain matches the host serving the app, so always test sign-in on the final domain.
 
 **Git-connected builds (alternative to `npm run deploy` from WSL):** Workers & Pages → `chog-arena` → Settings → Build → connect the GitHub repo. Then set:
-- Build command `npx opennextjs-cloudflare build`
+- Build command `npx opennextjs-cloudflare build --dangerouslyUseUnsupportedNextVersion` (OpenNext refuses Next.js 15 now that it is past its support window, until the app moves to Next.js 16)
 - Deploy command `npx opennextjs-cloudflare deploy`
 - Build variables: every `NEXT_PUBLIC_*` value above
 - Keep secrets as Worker secrets (the step 9 list), not build variables.
